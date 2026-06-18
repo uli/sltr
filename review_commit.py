@@ -38,11 +38,13 @@ def filter_commit(commit):
 def review_hash(args, repo, hash):
     commit = repo.git.show('-U' + str(args.diff_lines), hash)
 
-    # XXX: Here the commit used to be filtered through filter_commit(). It
-    # is not clear if it has been checked whether that is actually
-    # beneficial. At any rate it is not the purpose of filter_commit(), so
-    # it's disabled now.
-    #commit = filter_commit(commit)
+    # filter_commit() was originally intended to filter commit hashes that
+    # are not useful as review context. It turns out that it's beneficial to
+    # filter those out from the commit-under-review as well: LLMs have a
+    # tendency to interpret the presence of formalities as an indication
+    # that the patch is fine. That behavior is reliably prevented by simply
+    # removing them.
+    commit = filter_commit(commit)
 
     related_commits = []
     rela_text = None	# default
