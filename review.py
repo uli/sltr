@@ -43,7 +43,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     prompt += (f'```{input_syntax}\n' +
         # remove stuff that the LLM is not supposed to consider,
         # such as any kind of endorsement by developers or maintainers
-        grep_v(content, r'(^    [A-Z][a-z-]*-by: |^    Cc: stable |^Author: )') + '```\n')
+        grep_v(content, r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^Author: |: backport to )') + '```\n')
 
     have_related = False
     prompt_related = ''
