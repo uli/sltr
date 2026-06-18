@@ -30,11 +30,9 @@ def tokenize(url, prompt):
 def url(host, port):
     return 'http://' + host + ':' + str(port)
 
-def complete(args, input, related, input_syntax='diff', syntax='diff', rela_text=None):
+def complete(args, content, related, input_syntax='diff', syntax='diff', rela_text=None):
     if rela_text is None:
         rela_text = 'Here are some related patches that can be used for reference:'
-
-    content = input
 
     pre_file = args.review_pre
     post_file = args.review_post
