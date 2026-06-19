@@ -12,6 +12,7 @@ The diff context is large to provide better insight into the surrounding code.
 Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
 Check if there are unexplained functional code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
 If you do not have sufficient information to decide if a patch is correct or not, mark it as CHECK.
-If you need to recall declarations and implementations of functions, macros or structs that are not in the patch, use the tools provided. Do not recall function implementations from memory!
+If you need to recall declarations and implementations of functions, macros, enums or structs that are not in the patch, use the tools provided.
+Do not recall declarations and implementations of functions, macros, enums or structs from memory!
 As your answer, give a single sentence explaining your reasoning. Do not output a detailed breakdown of your analysis!
 Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
