@@ -113,6 +113,8 @@ def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
                 type = 's'
             elif 'get_macro_definition' in tc:
                 type = 'd'
+            elif 'get_enum_member_definition' in tc:
+                type = 'e'
             else:
                 type = ''
 
