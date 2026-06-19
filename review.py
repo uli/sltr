@@ -43,7 +43,9 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     prompt += (f'```{input_syntax}\n' +
         # remove stuff that the LLM is not supposed to consider,
         # such as any kind of endorsement by developers or maintainers
-        grep_v(content, r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^Author: |: backport to )') + '```\n')
+        # Yes, you have to even scrub "Link:" tags; in one case the LLM
+        # reverse-engineered the name of the author from a URL.
+        grep_v(content, r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Link: |^Author: |: backport to )') + '```\n')
 
     have_related = False
     prompt_related = ''
