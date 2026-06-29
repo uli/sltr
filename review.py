@@ -26,6 +26,11 @@ def url(host, port):
 def tokenize(args, prompt):
     _url = url(args.host, args.port)
 
+    if args.vllm == True:
+        tag = 'prompt'
+    else:
+        tag = 'content'
+
     r = requests.post(_url + '/tokenize',
         json={tag: prompt})
 
@@ -90,23 +95,45 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     return final_prompt, complete_raw(args, final_prompt)
 
 def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
-    r = requests.post(url(args.host, args.port) + '/completion',
-        json={
-            'prompt': final_prompt + output,
-            'n_keep': 0,
-            'n_predict': n_predict,
-            'cache_prompt': True,
-            'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
-            'stream': True
-        }, stream=True)
+    if args.vllm == False:
+        r = requests.post(url(args.host, args.port) + '/completion',
+            json={
+                'prompt': final_prompt + output,
+                'n_keep': 0,
+                'n_predict': n_predict,
+                'cache_prompt': True,
+                'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
+                'stream': True
+            }, stream=True)
+    else:
+        r = requests.post(url(args.host, args.port) + '/v1/completions',
+            json={
+                'prompt': final_prompt + output,
+                'n_keep': 0,
+                'max_tokens': args.max_tokens // 2,
+                'cache_prompt': True,
+                'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
+                'stream': True
+            }, stream=True)
 
     for line in r.iter_lines():
-        if line.startswith(b'data:'):
-            js = json.loads(line[6:])
-            output += js['content']
-            if log:
-                sys.stderr.write(js['content'])
-                sys.stderr.flush()
+        if args.vllm == False:
+            if line.startswith(b'data:'):
+                js = json.loads(line[6:])
+                output += js['content']
+                if log:
+                    sys.stderr.write(js['content'])
+                    sys.stderr.flush()
+        else:
+            if line.startswith(b'data: [DONE]'):
+                break
+            if line.startswith(b'data:'):
+                text = json.loads(line[6:].decode('utf-8'))['choices'][0]['text']
+                output += text
+                if log:
+                    sys.stderr.write(text)
+                    sys.stderr.flush()
+
         if output.count('produce final answer') > 20:
             return output + "\nABORT: excessive rambling\n"
 
@@ -175,6 +202,7 @@ def stdargs():
     parser.add_argument('--phi', action='store_true', help='use format defaults for Phi-4 models')
     parser.add_argument('--glm', action='store_true', help='use format defaults for GLM models')
     parser.add_argument('--qwen35', action='store_true', help='use format defaults for Qwen 3.5 models with tool calls')
+    parser.add_argument('--vllm', action='store_true', help='Send vLLM-compatible requests')
     parser.add_argument('--nothink', action='store_true', help='disable reasoning')
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
