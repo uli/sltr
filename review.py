@@ -20,15 +20,18 @@ def grep_v(s, rex):
             out += l + '\n'
     return out
 
-def tokenize(url, prompt):
-    r = requests.post(url + '/tokenize',
-        json={'content': prompt})
+def url(host, port):
+    return 'http://' + host + ':' + str(port)
+
+def tokenize(args, prompt):
+    _url = url(args.host, args.port)
+
+    r = requests.post(_url + '/tokenize',
+        json={tag: prompt})
+
     #print(r.status_code)
     #print(r.json())
     return r.json()['tokens']
-
-def url(host, port):
-    return 'http://' + host + ':' + str(port)
 
 def complete(args, content, related, input_syntax='diff', syntax='diff', rela_text=None):
     if rela_text is None:
@@ -68,11 +71,11 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     if args.system_prompt is not None:
         final_prompt = args.system_prompt_format.replace('{prompt}', args.system_prompt) + final_prompt
 
-    toks = len(tokenize(url(args.host, args.port), final_prompt))
+    toks = len(tokenize(args, final_prompt))
 
     if toks > args.max_tokens:
         final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_post)
-        toks = len(tokenize(url(args.host, args.port), final_prompt))
+        toks = len(tokenize(args, final_prompt))
         if toks > args.max_tokens:
             return final_prompt, None
 
