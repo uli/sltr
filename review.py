@@ -43,12 +43,19 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     with open(pre_file) as f:
         prompt = f.read()
 
-    prompt += (f'```{input_syntax}\n' +
+    prompt += f'```{input_syntax}\n'
+
+    if args.no_filter == False:
         # remove stuff that the LLM is not supposed to consider,
         # such as any kind of endorsement by developers or maintainers
         # Yes, you have to even scrub "Link:" tags; in one case the LLM
         # reverse-engineered the name of the author from a URL.
-        grep_v(content, r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Link: |^Author: |: backport to )') + '```\n')
+        prompt += grep_v(content,
+            r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Link: |^Author: |: backport to )')
+    else:
+        prompt += content
+
+    prompt += '```\n'
 
     have_related = False
     prompt_related = ''
@@ -172,6 +179,7 @@ def stdargs():
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
     parser.add_argument('--use_related', action='store_true', help='provide related commits as context')
+    parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
 
     return parser

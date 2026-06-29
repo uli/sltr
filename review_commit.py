@@ -44,7 +44,8 @@ def review_hash(args, repo, hash):
     # tendency to interpret the presence of formalities as an indication
     # that the patch is fine. That behavior is reliably prevented by simply
     # removing them.
-    commit = filter_commit(commit)
+    if args.no_filter == False:
+        commit = filter_commit(commit)
 
     related_commits = []
     rela_text = None	# default
