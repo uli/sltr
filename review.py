@@ -86,9 +86,12 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     toks = len(tokenize(args, final_prompt))
 
     if toks > args.max_tokens:
+        # Try again without related patches
         final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_post)
         toks = len(tokenize(args, final_prompt))
         if toks > args.max_tokens:
+            # Give up.
+            # XXX: We might want to retry with less context.
             return final_prompt, None
 
     sys.stderr.write(f'toks {toks}\n')
@@ -138,7 +141,7 @@ def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
             return output + "\nABORT: excessive rambling\n"
 
         if output.endswith('</tool_call>'):
-            # XXX: only supports Qwen 3.5
+            # XXX: only supports Qwen 3.5/3.6
             # (gpt-oss's tool calling is broken, and I haven't tried
             # anything else yet)
 
@@ -202,6 +205,7 @@ def stdargs():
     parser.add_argument('--phi', action='store_true', help='use format defaults for Phi-4 models')
     parser.add_argument('--glm', action='store_true', help='use format defaults for GLM models')
     parser.add_argument('--qwen35', action='store_true', help='use format defaults for Qwen 3.5 models with tool calls')
+    parser.add_argument('--qwen36', action='store_true', help='use format defaults for Qwen 3.6 models with tool calls')
     parser.add_argument('--vllm', action='store_true', help='Send vLLM-compatible requests')
     parser.add_argument('--nothink', action='store_true', help='disable reasoning')
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
@@ -240,9 +244,10 @@ def apply_format_args(args):
         if args.review_post is None:
             args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_phi4.txt')
         args.prompt_format = "<|user|>{prompt}<|end|><|assistant|><think>"
-    elif args.qwen35:
+    elif args.qwen35 == True or args.qwen36 == True:
         # Same format as QwQ, but Qwen 3.5 doesn't like to think, so we need
         # to push it a bit.
+        # XXX: Does that apply to 3.6 as well?
         args.prompt_format = '<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\nThe user'
 
         if args.system_prompt == '':
@@ -256,7 +261,11 @@ def apply_format_args(args):
                               '\n' + args.system_prompt)
 
         if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_qwen35.txt')
+            if args.qwen35:
+                args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_qwen35.txt')
+            else:
+                args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_qwen36.txt')
+
     if args.nothink:
         args.prompt_format = args.prompt_format.replace('<think>', '')
     

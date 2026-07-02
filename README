@@ -21,7 +21,7 @@ sudo apt install python3-git python3-requests universal-ctags
 ```bash
 python review_to_html.py \
         -c 200,200 \            # perform two reviews, each with 200 lines of diff context
-        --qwen35 \              # use defaults for Qwen 3.5/3.6 (see --help for other options)
+        --qwen35 \              # use defaults for Qwen 3.5 (see --help for other options)
         -o output.html \        # path to HTML output file
         --host <server> \       # llama.cpp server host name
         --port <port> \         # llama.cpp server port
