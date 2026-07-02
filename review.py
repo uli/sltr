@@ -92,7 +92,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
             return final_prompt, None
 
     sys.stderr.write(f'toks {toks}\n')
-    return final_prompt, complete_raw(args, final_prompt)
+    return final_prompt, complete_raw(args, final_prompt, n_predict=args.max_tokens - toks)
 
 def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
     if args.vllm == False:
@@ -110,7 +110,7 @@ def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
             json={
                 'prompt': final_prompt + output,
                 'n_keep': 0,
-                'max_tokens': args.max_tokens // 2,
+                'max_tokens': n_predict,
                 'cache_prompt': True,
                 'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
                 'stream': True
