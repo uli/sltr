@@ -81,12 +81,12 @@ if __name__ == '__main__':
     if os.path.exists(args.range[0]):
         # file with commit list
         with open(args.range[0], 'r') as f:
-            log = f.read().strip()
+            git_log = f.read().strip()
     else:
         # commit range
-        log = repo.git.log('--oneline', args.range)
+        git_log = repo.git.log('--oneline', args.range)
 
-    for l in log.split('\n'):
+    for l in git_log.split('\n'):
         new_review = True #False
 
         if ' ' in l:

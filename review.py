@@ -101,7 +101,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     sys.stderr.write(f'toks {toks}\n')
     return final_prompt, complete_raw(args, final_prompt, n_predict=args.max_tokens - toks)
 
-def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
+def complete_raw(args, final_prompt, n_predict=131072, output=''):
     if args.vllm == False:
         r = requests.post(url(args.host, args.port) + '/completion',
             json={
@@ -128,7 +128,7 @@ def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
             if line.startswith(b'data:'):
                 js = json.loads(line[6:])
                 output += js['content']
-                if log:
+                if args.verbose > 1:
                     sys.stderr.write(js['content'])
                     sys.stderr.flush()
         else:
@@ -137,7 +137,7 @@ def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
             if line.startswith(b'data:'):
                 text = json.loads(line[6:].decode('utf-8'))['choices'][0]['text']
                 output += text
-                if log:
+                if args.verbose > 1:
                     sys.stderr.write(text)
                     sys.stderr.flush()
 
@@ -178,13 +178,17 @@ def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
 
             output += tool_res
 
-            if log:
-                sys.stderr.write(tool_res)
+            log(2, tool_res)
 
             # resume generation
-            return complete_raw(args, final_prompt, n_predict=n_predict, log=log, output=output)
+            return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
     return output
+
+log_args = None
+def log(min, s):
+    if log_args.verbose >= min:
+        sys.stderr.write(s)
 
 def stdargs():
     ai_path = pathlib.Path(__file__).parent.absolute()
@@ -218,6 +222,7 @@ def stdargs():
     parser.add_argument('--use_related', action='store_true', help='provide related commits as context')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
+    parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
 
     return parser
     
@@ -277,6 +282,9 @@ def apply_format_args(args):
         args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post.txt')
     if args.review_pre is None:
         args.review_pre = os.path.join(args.ai_path, 'prompts', 'review_pre.txt')
+
+    global log_args    
+    log_args = args
 
 if __name__ == '__main__':
     parser = stdargs()
