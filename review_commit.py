@@ -31,8 +31,12 @@ def replace_unicode_chars(s):
     return s
 
 def filter_commit(commit):
-    # Drop references to patches we don't want to consider as related.
-    # (1da177e4c3 is the original import commit and is huge.)
+    # Drop references to patches we don't want to consider as related because they do not help
+    # in the review.
+    # - Upstream commits are largely identical to the CUR and thus confusing.
+    # - Stable-dep-of is usually completely unrelated to the CUR.
+    # - 1da177e4c3 is the original import commit and is huge.
+    # - The CUR is obviously already there.
     return grep_v(commit, r'(^commit |^index |^From|commit.*upstream|Upstream commit|Stable-dep-of|1da177e4c3)')
 
 def review_hash(args, repo, hash):
@@ -122,6 +126,7 @@ if __name__ == '__main__':
                 f.write(fp + output)
     else:
         with open(args.out, 'w') as f:
+            # XXX: bit of a useless format...
             f.write(cot)
             f.write('\n===\n')
             f.write(answer)
