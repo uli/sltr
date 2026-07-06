@@ -98,7 +98,9 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
             # XXX: We might want to retry with less context.
             return final_prompt, None
 
-    sys.stderr.write(f'toks {toks}\n')
+    log(3, final_prompt + '\n')
+    log(0, f'\033[2m{toks} prompt tokens\033[0m\n')
+
     return final_prompt, complete_raw(args, final_prompt, n_predict=args.max_tokens - toks)
 
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
@@ -182,6 +184,8 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
 
             # resume generation
             return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
+    log(2, '\n')
 
     return output
 
