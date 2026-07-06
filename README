@@ -57,14 +57,20 @@ and system prompts.
 ## Tag files
 
 When providing the model with tools (default for Qwen 3.5, 3.6) you have to provide a tag file for
-the `cliptags.sh` script. This file must be created using the following command:
+the `cliptags.sh` script.
+
+The review_commit.py and review_to_html.py scripts have the option `--update_tags` that
+automatically generates the tag file from the kernel repository specified in the `--repo` option
+using `ctags-universal`.
+
+When manually creating the tag file the following command must be used:
 
 ```bash
 cd <kernel path>
-ctags-universal --fields=+Sne -o <something>.tags -R *
+ctags-universal --fields=+Sne -o <something>.tags -R .
 ```
 
-The file must be provided to SLTR tools as a command line option:
+In either case the file must be provided to SLTR tools as a command line option:
 
 ```bash
 --tag_file <kernel path>/<something>.tags
