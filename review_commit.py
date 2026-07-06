@@ -98,6 +98,8 @@ def update_tags(args):
     if args.update_tags == False:
         return
 
+    log(1, 'Updating tag file...\n')
+
     cmd = ['ctags-universal', '--fields=+Sne', '-o', args.tag_file, '-R', '.']
     try:
         ret = subprocess.run(cmd, cwd=args.repo)
