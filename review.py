@@ -13,6 +13,7 @@ import sys
 import os
 import re
 
+# filter lines matching a regex from a multi-line string
 def grep_v(s, rex):
     out = ''
     for l in s.split('\n'):
@@ -55,6 +56,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
         # such as any kind of endorsement by developers or maintainers
         # Yes, you have to even scrub "Link:" tags; in one case the LLM
         # reverse-engineered the name of the author from a URL.
+        # XXX: make this regex a command-line option
         prompt += grep_v(content,
             r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Link: |^Author: |: backport to )')
     else:
@@ -62,6 +64,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
 
     prompt += '```\n'
 
+    # assemble related patches (if any) into a prompt fragment
     have_related = False
     prompt_related = ''
 
@@ -79,6 +82,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     with open(post_file) as f:
         prompt_post = f.read()
 
+    # assemble final prompt
     final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_related + prompt_post)
     if args.system_prompt is not None:
         final_prompt = args.system_prompt_format.replace('{prompt}', args.system_prompt) + final_prompt
@@ -137,6 +141,7 @@ def complete_raw(args, final_prompt, n_predict=131072, log=True, output=''):
                     sys.stderr.write(text)
                     sys.stderr.flush()
 
+        # terminate Phi-4 rambling early
         if output.count('produce final answer') > 20:
             return output + "\nABORT: excessive rambling\n"
 
@@ -245,9 +250,8 @@ def apply_format_args(args):
             args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_phi4.txt')
         args.prompt_format = "<|user|>{prompt}<|end|><|assistant|><think>"
     elif args.qwen35 == True or args.qwen36 == True:
-        # Same format as QwQ, but Qwen 3.5 doesn't like to think, so we need
+        # Same format as QwQ, but Qwen 3.5/3.6 doesn't like to think, so we need
         # to push it a bit.
-        # XXX: Does that apply to 3.6 as well?
         args.prompt_format = '<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\nThe user'
 
         if args.system_prompt == '':
