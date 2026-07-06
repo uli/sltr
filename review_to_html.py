@@ -37,6 +37,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     apply_format_args(args)
+    update_tags(args)
 
     html_path = os.path.join(args.ai_path, 'html')
     
