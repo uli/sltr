@@ -79,9 +79,11 @@ if __name__ == '__main__':
     body += '</tr>'
 
     if os.path.exists(args.range[0]):
+        # file with commit list
         with open(args.range[0], 'r') as f:
             log = f.read().strip()
     else:
+        # commit range
         log = repo.git.log('--oneline', args.range)
 
     for l in log.split('\n'):
@@ -100,7 +102,7 @@ if __name__ == '__main__':
         results = ''
         count = 0
         for context in contexts:
-            prefix = dumpdir + '/' + hash + '_' + str(count) + '_'
+            prefix = os.path.join(dumpdir, f'{hash}_{count}_')
 
             args.diff_lines = context
             try:
@@ -113,6 +115,7 @@ if __name__ == '__main__':
                 cot, answer, verdict, fp, output = review_hash(args, repo, hash)
                 new_review = True
 
+            # add a marker showing the result of verification, if there is any
             verify = ''
             for i in ['1', '2']:
                 try:
@@ -157,15 +160,14 @@ if __name__ == '__main__':
                 with open(prefix + 'verdict.txt', 'w') as f:
                     f.write(str(verdict))
             except TypeError:
+                # some of these may not exist if the review failed
                 pass
             count += 1
 
         body += review_commit.replace('{hash}', hash).replace('{title}', title)
 
         body += '</tr><tr>'
-
-        body += '<td colspan="5">' + results + '</td>'
-
+        body += f'<td colspan="5">{results}</td>'
         body += '</tr>'
 
         if new_review:        
