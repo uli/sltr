@@ -98,8 +98,8 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
             # XXX: We might want to retry with less context.
             return final_prompt, None
 
-    log(3, final_prompt + '\n')
-    log(0, f'\033[2m{toks} prompt tokens\033[0m\n')
+    log(3, f'\033[2m{final_prompt}\033[0m\n')
+    log(1, f'\033[35m{toks} prompt tokens\033[0m\n')
 
     return final_prompt, complete_raw(args, final_prompt, n_predict=args.max_tokens - toks)
 
