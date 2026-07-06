@@ -32,7 +32,9 @@ python review_to_html.py \
 ```
 
 **Note:** The above command will also create a directory `output` that contains the raw output as
-well as output split into prompt, CoT and answer for each commit.
+well as output split into prompt, CoT and answer for each commit. These files are used to resume
+aborted runs without re-reviewing all commits. They also allow for inspection of the results for
+debugging or further processing (e.g. verification or training).
 
 ### Review a single commit and print the result to stdout:
 
