@@ -95,9 +95,9 @@ if __name__ == '__main__':
             hash = l
             title = '(unknown)'
 
-        print(hash,'/',title)
-
         body += '<tr>'
+
+        log(1, f'\033[33m{hash}\033[0m {title}\n')
 
         results = ''
         count = 0
@@ -112,6 +112,7 @@ if __name__ == '__main__':
                 fp = open(prefix + 'prompt.txt', 'r').read()
                 output = open(prefix + 'raw.txt', 'r').read().replace(fp, '')
             except FileNotFoundError:
+                log(1, f'\033[1mReview {count}:\033[0m\n')
                 cot, answer, verdict, fp, output = review_hash(args, repo, hash)
                 new_review = True
 
