@@ -10,7 +10,7 @@ You have access to the following functions:
   "function": {
     "name": "get_function_implementation",
     "arguments": {
-      "identifier": "function identifier"
+      "identifier": "kernel function identifier"
     }
   }
 }
@@ -19,7 +19,7 @@ You have access to the following functions:
   "function": {
     "name": "get_macro_definition",
     "arguments": {
-      "identifier": "macro identifier"
+      "identifier": "kernel macro identifier"
     }
   }
 }
@@ -28,7 +28,7 @@ You have access to the following functions:
   "function": {
     "name": "get_struct_definition",
     "arguments": {
-      "identifier": "structure identifier (without struct prefix)"
+      "identifier": "kernel structure identifier (without struct prefix)"
     }
   }
 }
@@ -37,7 +37,7 @@ You have access to the following functions:
   "function": {
     "name": "get_enum_member_definition",
     "arguments": {
-      "identifier": "enum member identifier"
+      "identifier": "kernel enum member identifier"
     }
   }
 }
@@ -64,5 +64,6 @@ Reminder:
 - Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags
 - Required parameters MUST be specified
 - You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after
+- Functions can be called speculatively, there is no penalty if the parameter is invalid.
 - If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls
 </IMPORTANT>
