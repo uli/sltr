@@ -1,16 +1,14 @@
 # prompt footer for Qwen 3.6 with tool calls
+#
+# Qwen 3.6 (particularly the MoE version) will cling to any excuse to avoid
+# using tools. A lot of statements that were added to help other models cut
+# down on unnecessary work have therefore been removed.
 
 Analyze what changes this patch makes to the code, then check if any of those changes may cause regressions.
 Pay special attention to changes in control flow, locking and resource allocation/deallocation.
 Check for changes in the types of return values and function arguments, both in functions defined and in functions called.
 Check if the invariants expected by the involved subsystems are still met.
-# XXX: next line may be obsolete with tools
-Do not consider hypotheticals, stick to the information provided.
 Do not assume that the patch is correct because the commit message says so!
-#
-# Avoid speculation about the presence or absence of callees etc.
-Assume that the kernel provides the necessary infrastructure.
-Do not consider potential build errors.
 #
 # Qwen 3.5 often spends tokens on musing about the size of the diff context.
 # Not 100% reliable, but seems to help. XXX: Necessary for Qwen 3.6?
@@ -25,10 +23,9 @@ If you do not have sufficient information to decide if a patch is correct or not
 #
 # Tool calling
 # The model is prone to prefer guessing over tool calling, so we push it hard to do the latter.
-To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, use the tools provided. Do not recall from memory!
-Verify all assumptions you make about code outside the provided context using tool calls, even if you are confident!
-Do not quote code from memory, use tools!
-IMPORTANT: Tool calls are cheaper than reasoning. Do not substitute tool calling with reasoning!
+To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, you must use the tools provided. You must not recall from memory!
+You must verify all assumptions you make about code outside the provided context using tool calls, even if you are confident!
+You must not quote code from memory, you must use tools!
 #
 As your answer, give one or two sentences explaining your reasoning.
 Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
