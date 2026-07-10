@@ -1,3 +1,4 @@
+# prompt footer for Phi-4 reasoning
 
 Check if this patch makes changes that may cause regressions.
 Pay special attention to changes in control flow, locking and resource allocation/deallocation.
@@ -5,10 +6,19 @@ Check for changes in the types of return values and function arguments, both in 
 Check if the invariants expected by the involved subsystems are still met.
 Do not consider hypotheticals, stick to the information provided.
 Do not assume that the patch is correct because the commit message says so!
+#
+# Do not concern yourself with stuff that we (should have) verified outside the LLM review.
 Assume that the kernel provides the necessary infrastructure.
 Do not consider potential build errors.
+#
+# IIRC this was added after Phi-4 was extensively tested, not tuned.
 Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
 Check if there are unexplained code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
 If you do not have sufficient information to decide if a patch is correct or not, mark it as CHECK.
+#
+# If you tell Phi-4 to give a one-sentence answer it spends endless amounts of tokens rephrasing
+# the answer to cram everything into exactly one sentence. We therefore give
+# it permission to use two sentences...
 Give a one or two-sentence answer explaining your reasoning and how confident you are in the result.
+#
 Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".

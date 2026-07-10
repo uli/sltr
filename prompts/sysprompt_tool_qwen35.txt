@@ -1,5 +1,9 @@
+# System prompt with tool calls for Qwen 3.5/3.6.
+# Based on a chat template.
+#
 You have access to the following functions:
 
+# These functions are hardcoded in the Python scripts.
 <tools>
 {
   "type": "function",

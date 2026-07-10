@@ -1,16 +1,31 @@
+# prompt footer for Qwen 3.5 without tool calls
 
+# Qwen 3.5 does a better job when you tell it to analyze first, then find bugs.
 First, enumerate what changes this patch makes to the code.
 Second, check if any of those changes may cause regressions.
+#
 Pay special attention to changes in control flow, locking and resource allocation/deallocation.
 Check for changes in the types of return values and function arguments, both in functions defined and in functions called.
 Check if the invariants expected by the involved subsystems are still met.
 Do not consider hypotheticals, stick to the information provided.
 Do not assume that the patch is correct because the commit message says so!
+#
+# Avoid speculation about the presence or absence of callees etc.
 Assume that the kernel provides the necessary infrastructure.
+# Avoid speculation about stuff we can verify outside the LLM and/or is simply not going to
+# happen (malformed diffs). (Not 100% successful.)
 Do not consider potential build errors. Do not examine diff artifacts. Do not verify diff hunk line counts!
+#
+# Qwen 3.5 often spends tokens on musing about the size of the diff context.
+# Not 100% reliable, but seems to help.
 The diff context is large to provide better insight into the surrounding code.
+#
+# Check discrepancies between commit message and code.
 Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
 Check if there are unexplained functional code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
+#
+# Model is reluctant to admit uncertainty.
 If you do not have sufficient information to decide if a patch is correct or not, mark it as CHECK.
+#
 Give a single-sentence answer explaining your reasoning.
 Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
