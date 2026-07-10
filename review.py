@@ -22,7 +22,7 @@ def grep_v(s, rex):
     return out
 
 def url(host, port):
-    return 'http://' + host + ':' + str(port)
+    return f'http://{host}:{port}'
 
 def tokenize(args, prompt):
     _url = url(args.host, args.port)
