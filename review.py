@@ -47,7 +47,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     post_file = args.review_post
 
     with open(pre_file) as f:
-        prompt = f.read()
+        prompt = grep_v(f.read(), '^#')
 
     prompt += f'```{input_syntax}\n'
 
@@ -80,7 +80,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
         prompt_related += '```\n'
 
     with open(post_file) as f:
-        prompt_post = f.read()
+        prompt_post = grep_v(f.read(), '^#')
 
     # assemble final prompt
     final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_related + prompt_post)
@@ -233,7 +233,7 @@ def stdargs():
 def apply_format_args(args):
     if args.system_prompt is not None:
         with open(args.system_prompt) as f:
-            args.system_prompt = f.read()
+            args.system_prompt = grep_v(f.read(), '^#')
     else:
         args.system_prompt = ''
 
@@ -254,7 +254,7 @@ def apply_format_args(args):
     elif args.phi:
         if args.system_prompt == '':
             with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_phi4.txt')) as f:
-                args.system_prompt = f.read()
+                args.system_prompt = grep_v(f.read(), '^#')
         if args.review_post is None:
             args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_phi4.txt')
         args.prompt_format = "<|user|>{prompt}<|end|><|assistant|><think>"
@@ -265,7 +265,7 @@ def apply_format_args(args):
 
         if args.system_prompt == '':
             with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_qwen35.txt')) as f:
-                args.system_prompt = f.read()
+                args.system_prompt = grep_v(f.read(), '^#')
 
         # Qwen 3.5 goes full conspiracy theory when it sees anything it
         # thinks is from the future...
