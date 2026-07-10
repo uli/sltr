@@ -116,8 +116,12 @@ if __name__ == '__main__':
                 cot, answer, verdict, fp, output = review_hash(args, repo, hash)
                 new_review = True
 
-            # add a marker showing the result of verification, if there is any
             verify = ''
+
+            if '<tool_call>' in cot:
+                verify += '<sup>T</sup>'
+
+            # add a marker showing the result of verification, if there is any
             for i in ['1', '2']:
                 try:
                     #print(prefix + f'verify{i}.txt')
