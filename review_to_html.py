@@ -32,6 +32,7 @@ if __name__ == '__main__':
     parser = gitargs()
     parser.add_argument('-c', '--contexts', type=str, default="50,100,200",
                         help='list of diff context sizes to review')
+    parser.add_argument('--header', type=str, default='SLTR Review')
     parser.add_argument('range', type=str, nargs=1,
                         help='git commit range or file with list of commits')
     args = parser.parse_args()
@@ -55,7 +56,7 @@ if __name__ == '__main__':
 
     body = ''
 
-    hdr = review_header.replace('{page_header}', 'Auto kernel review <code>' + args.range[0] + '</code>')
+    hdr = review_header.replace('{page_header}', f'{args.header} <code>{args.range[0]}</code>')
 
     with open(args.review_pre) as f:
         pr = f.read()
