@@ -49,6 +49,10 @@ if __name__ == '__main__':
     with open(os.path.join(html_path, 'review_commit.html')) as f: review_commit = f.read()
     with open(os.path.join(html_path, 'review_review.html')) as f: review_review = f.read()
     
+    review_apply = review_apply.replace('>APPLY<', f'>{args.verdicts[0]}<')
+    review_check = review_check.replace('>CHECK<', f'>{args.verdicts[1]}<')
+    review_reject = review_reject.replace('>REJECT<', f'>{args.verdicts[2]}<')
+
     body = ''
 
     hdr = review_header.replace('{page_header}', 'Auto kernel review <code>' + args.range[0] + '</code>')

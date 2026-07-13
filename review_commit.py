@@ -76,11 +76,11 @@ def review_hash(args, repo, hash):
         cot = '<no CoT>'
         answer = output
 
-    if 'APPLY' in answer:
+    if args.verdicts[0] in answer:
         verdict = APPLY
-    elif 'CHECK' in answer:
+    elif args.verdicts[1] in answer:
         verdict = CHECK
-    elif 'REJECT' in answer:
+    elif args.verdicts[2] in answer:
         verdict = REJECT
     else:
         verdict = UNKNOWN
@@ -92,10 +92,13 @@ def gitargs():
     parser.add_argument('-U', '--diff_lines', type=int, default=15, help='number of diff context lines')
     parser.add_argument('-r', '--repo', type=str, default='.', help='path to git repository')
     parser.add_argument('--update_tags', action='store_true', help='run ctags-universal to update the tag file')
+    parser.add_argument('--verdicts', type=str, default='APPLY,CHECK,REJECT', help='review verdicts')
     return parser
 
 def apply_git_args(args):
     apply_format_args(args)
+
+    args.verdicts = args.verdicts.split(',')
 
     if args.update_tags == False:
         return
