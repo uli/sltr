@@ -91,8 +91,7 @@ if __name__ == '__main__':
         if ' ' in l:
             hash, title = l.split(' ', 1)
         else:
-            hash = l
-            title = '(unknown)'
+            hash, title = repo.git.show('-s', '--oneline', l).split(' ', 1)
 
         body += '<tr>'
 
