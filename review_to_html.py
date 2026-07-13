@@ -36,8 +36,7 @@ if __name__ == '__main__':
                         help='git commit range or file with list of commits')
     args = parser.parse_args()
 
-    apply_format_args(args)
-    update_tags(args)
+    apply_git_args(args)
 
     html_path = os.path.join(args.ai_path, 'html')
     

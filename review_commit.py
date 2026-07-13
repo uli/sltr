@@ -94,7 +94,9 @@ def gitargs():
     parser.add_argument('--update_tags', action='store_true', help='run ctags-universal to update the tag file')
     return parser
 
-def update_tags(args):
+def apply_git_args(args):
+    apply_format_args(args)
+
     if args.update_tags == False:
         return
 
@@ -116,8 +118,7 @@ if __name__ == '__main__':
     parser.add_argument('hash', type=str, nargs=1, help='hash of commit to review')
     args = parser.parse_args()
 
-    apply_format_args(args)
-    update_tags(args)
+    apply_git_args(args)
 
     repo = Repo(args.repo)
 
