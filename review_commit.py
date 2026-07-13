@@ -76,11 +76,14 @@ def review_hash(args, repo, hash):
         cot = '<no CoT>'
         answer = output
 
-    if args.verdicts[0] in answer:
+    def is_verdict(n):
+        return re.search(r'\b' + re.escape(args.verdicts[n]) + r'\b', answer)
+
+    if is_verdict(0):
         verdict = APPLY
-    elif args.verdicts[1] in answer:
+    elif is_verdict(1):
         verdict = CHECK
-    elif args.verdicts[2] in answer:
+    elif is_verdict(2):
         verdict = REJECT
     else:
         verdict = UNKNOWN
