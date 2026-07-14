@@ -107,8 +107,8 @@ def apply_git_args(args):
         return
 
     log(1, 'Updating tag file...\n')
-
-    cmd = ['ctags-universal', '--fields=+Sne', '-o', args.tag_file, '-R', '.']
+    cmd = ['ctags-universal', '--fields=+Sne', '-o',
+        os.path.realpath(args.tag_file), '-R', '.']
     try:
         ret = subprocess.run(cmd, cwd=args.repo)
         if ret.returncode != 0:
