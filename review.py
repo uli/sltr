@@ -103,6 +103,83 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
 
     return final_prompt, complete_raw(args, final_prompt, n_predict=args.max_tokens - toks)
 
+def parse_tool_call(text):
+    func_pattern = re.compile(r'<function\s*=\s*([^>]+)\s*>\s*(.*?)\s*</function>', re.DOTALL)
+    param_pattern = re.compile(r'<parameter\s*=\s*([^>]+)\s*>\s*(.*?)\s*</parameter>', re.DOTALL)
+
+    results = []
+    for func_match in func_pattern.finditer(text):
+        func_name = func_match.group(1).strip()
+        body = func_match.group(2)
+
+        # Convert list of dicts to a flat dictionary
+        parameters = {}
+        for param_match in param_pattern.finditer(body):
+            param_name = param_match.group(1).strip()
+            param_value = param_match.group(2).strip()
+            parameters[param_name] = param_value
+
+        results.append({
+            'function': func_name,
+            'parameters': parameters
+        })
+
+    return results
+
+# Tool call function implementations
+def do_get_tag(args, type, identifier):
+    clip = subprocess.Popen(
+        [os.path.join(args.ai_path, 'cliptags.sh'), args.tag_file],
+        stdout = subprocess.PIPE, stdin = subprocess.PIPE)
+    clip.stdin.write((type + ':' + identifier + '\n').encode('utf-8'))
+    clip.stdin.close()
+    response = clip.stdout.read().decode('utf-8')
+
+    if response == '':
+        response = f'"{identifier}" does not exist\n'
+
+    return response
+
+def tool_get_function_implementation(args, identifier):
+    return do_get_tag(args, 'f', identifier)
+def tool_get_struct_definition(args, identifier):
+    return do_get_tag(args, 's', identifier)
+def tool_get_macro_definition(args, identifier):
+    return do_get_tag(args, 'd', identifier)
+def tool_get_enum_member_definition(args, identifier):
+    return do_get_tag(args, 'e', identifier)
+
+TOOL_REGISTRY = {
+    "get_function_implementation": tool_get_function_implementation,
+    "get_struct_definition": tool_get_struct_definition,
+    "get_macro_definition": tool_get_macro_definition,
+    "get_enum_member_definition": tool_get_enum_member_definition,
+}
+
+def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
+    results = []
+
+    # Not sure how much sense it makes to parse more than one function call
+    # per tool call. I have seen models generate that, but there is no
+    # proper way to respond to it, AFAIK.
+    # Anyway, it can happen, so we deal with it.
+
+    for call in calls:
+        func_name = call['function']
+        params = call['parameters']
+
+        if func_name not in registry:
+            results.append(f"ERROR: Undefined function '{func_name}'")
+            continue
+
+        try:
+            result = registry[func_name](args, **params)
+            results.append(result)
+        except Exception as e:
+            results.append(f"Error executing '{func_name}': {e}")
+
+    return results
+
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
     if args.vllm == False:
         r = requests.post(url(args.host, args.port) + '/completion',
@@ -152,34 +229,22 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
             # (gpt-oss's tool calling is broken, and I haven't tried
             # anything else yet)
 
-            # XXX: This needs better input validation. And input parsing.
-            tc = output.split('<tool_call>')[-1]
-            fun = tc.split('<parameter=identifier>')[1].split('</parameter>')[0].strip()
+            try:
+                tool_call = output.split('<tool_call>')[-1]
+                calls = parse_tool_call(tool_call.split('</tool_call>')[0])
 
-            if 'get_function_implementation' in tc:
-                type = 'f'
-            elif 'get_struct_definition' in tc:
-                type = 's'
-            elif 'get_macro_definition' in tc:
-                type = 'd'
-            elif 'get_enum_member_definition' in tc:
-                type = 'e'
-            else:
-                type = ''
-
-            clip = subprocess.Popen([os.path.join(args.ai_path, 'cliptags.sh'), args.tag_file],
-                                    stdout = subprocess.PIPE,
-                                    stdin = subprocess.PIPE)
-            clip.stdin.write((type + ':' + fun + '\n').encode('utf-8'))
-            clip.stdin.close()
-            code = clip.stdout.read().decode('utf-8')
+                if len(calls) != 1:
+                    response = "ERROR: There must be exactly one function call per tool call."
+                else:
+                    response = execute_tool_calls(args, calls)[0]
+            except:
+                response = "ERROR: Failed to parse tool call."
 
             tool_res = ('<|im_end|>\n<|im_start|>user\n<tool_response>\n' +
-                        code +
+                        response +
                         '</tool_response>\n<|im_end|>\n<|im_start|>assistant')
 
             output += tool_res
-
             log(2, tool_res)
 
             # resume generation
