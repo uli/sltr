@@ -8,6 +8,16 @@
   overflow: hidden;
   transition: max-height 0.2s ease-out;
 }
+table {
+    table-layout: auto;
+}
+td pre {
+    font-family: monospace;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
 </style>
 
 </head>
@@ -24,5 +34,4 @@
 <div class="content"><pre>{props}</pre></div>
 <br />
 
-<table style="table-layout: fixed;" width="100%">
-
+<table style="width:100%;">
