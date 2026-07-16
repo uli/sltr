@@ -1,0 +1,28 @@
+<html><head>
+
+<style>
+.content {
+  padding: 0 18px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+</style>
+
+</head>
+
+<body>
+<h2>{page_header}</h2>
+
+<a class="collapsible"><u>prompt used</u></a>
+<div class="content"><pre>{prompt}</pre></div>
+<a class="collapsible"><u>system prompt used</u></a>
+<div class="content"><pre>{system_prompt}</pre></div>
+<br />
+<a class="collapsible"><u>llama.cpp properties</u></a>
+<div class="content"><pre>{props}</pre></div>
+<br />
+
+<table style="table-layout: fixed;" width="100%">
+

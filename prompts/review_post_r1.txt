@@ -1,0 +1,12 @@
+
+Check if this patch causes regressions. If so, reject the patch.
+Do not assume that the patch is correct because the commit message says so, rely on your own reasoning instead.
+Do not assume that the code reflects what is described in the commit message.
+Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
+Check if there are unexplained code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
+Assume that the kernel provides the necessary infrastructure.
+Do not consider potential build errors.
+If you do not have sufficient information to decide if a patch is correct or not, mark it as CHECK.
+Do not repeat reasoning you have already completed!
+Give a one or two-sentence answer explaining your reasoning and how confident you are in the result.
+Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".

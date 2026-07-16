@@ -1,0 +1,14 @@
+
+Check if this patch makes changes that may cause regressions.
+Pay special attention to changes in control flow, locking and resource allocation/deallocation.
+Check for changes in the types of return values and function arguments, both in functions defined and in functions called.
+Check if the invariants expected by the involved subsystems are still met.
+Do not consider hypotheticals, stick to the information provided.
+Do not assume that the patch is correct because the commit message says so!
+Assume that the kernel provides the necessary infrastructure.
+Do not consider potential build errors.
+Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
+Check if there are unexplained code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
+If you do not have sufficient information to decide if a patch is correct or not, mark it as CHECK.
+Give a single-sentence answer explaining your reasoning and how confident you are in the result.
+Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".

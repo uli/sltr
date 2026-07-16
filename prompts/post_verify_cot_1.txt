@@ -1,0 +1,13 @@
+Check if this review is correct:
+
+- Are all possible issues addressed?
+- Are the issues addressed analyzed correctly?
+- Are the right conclusions drawn from the analysis?
+- Does the answer summarize the findings correctly?
+
+If the answer is the result of incorrect reasoning, answer "COMPLETELY_BOGUS".
+If the answer contains false or misleading statements, answer "COMPLETELY_BOGUS".
+If the answer is incorrect, answer "COMPLETELY_BOGUS".
+If the review uses incorrect terminology such as typos or misspellings, answer with "NEEDS_IMPROVEMENT".
+If some conditions are not met but the answer is still correct, answer with "NEEDS_IMPROVEMENT".
+If there are no issues with the review, answer with "GOOD_JOB".
