@@ -91,7 +91,8 @@ if __name__ == '__main__':
         git_log = repo.git.log('--oneline', args.range)
 
     for l in git_log.split('\n'):
-        new_review = True #False
+        update_html = True
+        save_review = False
 
         if ' ' in l:
             hash, title = l.split(' ', 1)
@@ -117,7 +118,8 @@ if __name__ == '__main__':
             except FileNotFoundError:
                 log(1, f'\033[1mReview {count}:\033[0m\n')
                 cot, answer, verdict, fp, output = review_hash(args, repo, hash)
-                new_review = True
+                update_html = True
+                save_review = True
 
             verify = ''
 
@@ -149,27 +151,30 @@ if __name__ == '__main__':
                 body_add = review_reject
             else:
                 body_add = review_fail
-                new_review = False
+                update_html = False
             
             body_add = body_add.replace('</button', verify + '</button')
             body += body_add
 
             results += review_review.replace('{answer}',
                 htmlize(answer)).replace('{cot}', htmlize(cot))
-            try:
-                with open(prefix + 'raw.txt', 'w') as f:
-                    f.write(fp + output)
-                with open(prefix + 'prompt.txt', 'w') as f:
-                    f.write(fp)
-                with open(prefix + 'cot.txt', 'w') as f:
-                    f.write(cot)
-                with open(prefix + 'answer.txt', 'w') as f:
-                    f.write(answer)
-                with open(prefix + 'verdict.txt', 'w') as f:
-                    f.write(str(verdict))
-            except TypeError:
-                # some of these may not exist if the review failed
-                pass
+
+            if save_review:
+                try:
+                    with open(prefix + 'raw.txt', 'w') as f:
+                        f.write(fp + output)
+                    with open(prefix + 'prompt.txt', 'w') as f:
+                        f.write(fp)
+                    with open(prefix + 'cot.txt', 'w') as f:
+                        f.write(cot)
+                    with open(prefix + 'answer.txt', 'w') as f:
+                        f.write(answer)
+                    with open(prefix + 'verdict.txt', 'w') as f:
+                        f.write(str(verdict))
+                except TypeError:
+                    # some of these may not exist if the review failed
+                    pass
+
             count += 1
 
         body += review_commit.replace('{hash}', hash).replace('{title}', title)
@@ -178,7 +183,7 @@ if __name__ == '__main__':
         body += f'<td colspan="5">{results}</td>'
         body += '</tr>'
 
-        if new_review:        
+        if update_html:
             write_html(args.out, hdr, body, review_footer)
         
     sys.exit(0)
