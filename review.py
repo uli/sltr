@@ -254,9 +254,14 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
             except:
                 response = "ERROR: Failed to parse tool call."
 
+            # XXX: Sometimes generation stops around tool calls. Often it
+            # stops after the tool response, which seemingly can be
+            # mitigated by adding the <think> tag to the response. Sometimes
+            # it stops in the middle of generating the actual tool call. No
+            # idea what's going on there.
             tool_res = ('<|im_end|>\n<|im_start|>user\n<tool_response>\n' +
                         response +
-                        '</tool_response>\n<|im_end|>\n<|im_start|>assistant')
+                        '</tool_response>\n<|im_end|>\n<|im_start|>assistant\n<think>\n')
 
             output += tool_res
             log(2, tool_res)
