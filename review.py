@@ -149,7 +149,21 @@ def tool_get_macro_definition(args, identifier):
 def tool_get_enum_member_definition(args, identifier):
     return do_get_tag(args, 'e', identifier)
 
+def tool_grep_code(args, regex):
+    # XXX: "-C2" is chosen at random
+    grep = subprocess.Popen(['ag', '-C2', '-H',
+        '--ignore', '.git',
+        '--ignore', '*.tags',
+        '--ignore', '*.log',
+        '--ignore', '*.old',
+        '--ignore', '*.txt',
+        regex],
+        cwd = args.repo,
+        stdout = subprocess.PIPE)
+    return grep.stdout.read().decode('utf-8')
+
 TOOL_REGISTRY = {
+    "grep_code": tool_grep_code,
     "get_function_implementation": tool_get_function_implementation,
     "get_struct_definition": tool_get_struct_definition,
     "get_macro_definition": tool_get_macro_definition,
