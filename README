@@ -78,3 +78,16 @@ In either case the file must be provided to SLTR tools as a command line option:
 ```bash
 --tag_file <kernel path>/<something>.tags
 ```
+
+Don't forget to make sure that the kernel tree checked out is the right one for the patches you
+want to have reviewed!
+
+## Notes
+
+SLTR does not use chat templates (jinja). You have to make sure to use command line options to
+select the correct prompt format defaults or to manually specify the format appropriate for the
+model you're using.
+
+By default certain pieces of information from the commit are filtered because they lead models to
+use shortcuts, saying for instance "This looks broken, but it was signed off by J. Random Hacker,
+so it must be correct." If you don't want that use the --no_filter option.
