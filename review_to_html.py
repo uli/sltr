@@ -41,14 +41,17 @@ if __name__ == '__main__':
 
     html_path = os.path.join(args.ai_path, 'html')
     
-    with open(os.path.join(html_path, 'review_header.html')) as f: review_header = f.read()
-    with open(os.path.join(html_path, 'review_footer.html')) as f: review_footer = f.read()
-    with open(os.path.join(html_path, 'review_apply.html' )) as f: review_apply  = f.read()
-    with open(os.path.join(html_path, 'review_check.html' )) as f: review_check  = f.read()
-    with open(os.path.join(html_path, 'review_reject.html')) as f: review_reject = f.read()
-    with open(os.path.join(html_path, 'review_fail.html'  )) as f: review_fail = f.read()
-    with open(os.path.join(html_path, 'review_commit.html')) as f: review_commit = f.read()
-    with open(os.path.join(html_path, 'review_review.html')) as f: review_review = f.read()
+    def load_html(file):
+        with open(os.path.join(html_path, file)) as f: return f.read()
+
+    review_header = load_html('review_header.html')
+    review_footer = load_html('review_footer.html')
+    review_apply  = load_html('review_apply.html')
+    review_check  = load_html('review_check.html')
+    review_reject = load_html('review_reject.html')
+    review_fail   = load_html('review_fail.html')
+    review_commit = load_html('review_commit.html')
+    review_review = load_html('review_review.html')
     
     review_apply = review_apply.replace('>APPLY<', f'>{args.verdicts[0]}<')
     review_check = review_check.replace('>CHECK<', f'>{args.verdicts[1]}<')
