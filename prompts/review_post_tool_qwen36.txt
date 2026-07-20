@@ -26,6 +26,8 @@ If you do not have sufficient information to decide if a patch is correct or not
 To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, you must use the tools provided. You must not recall from memory!
 You must verify all assumptions you make about code outside the provided context using tool calls, even if you are confident!
 You must not quote code from memory, you must use tools!
+# Looks redundant but increases tool use by 20%.
+IMPORTANT: If there is any possibility of tool calling you MUST ALWAYS use tool calling, independent of your reasoning!
 #
 As your answer, give one or two sentences explaining your reasoning.
 Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
