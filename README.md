@@ -11,7 +11,7 @@ otherwise SLTR may not be able to parse the output correctly (depends on the mod
 On Debian-like systems, install the following packages:
 
 ```bash
-sudo apt install python3-git python3-requests universal-ctags
+sudo apt install python3-git python3-requests universal-ctags silversearcher-ag
 ```
 
 ## Usage
@@ -28,7 +28,7 @@ python review_to_html.py \
         --repo <directory> \    # path to git repository to review
         --max_tokens 90000 \    # maximum LLM context size
         --tag_file <tag file> \ # ctags tag file for the git repository under review
-	-vv			# show what's going on
+        -vv                     # show what's going on
         <start>..<end>          # git commit range to review
 ```
 
