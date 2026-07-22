@@ -92,7 +92,6 @@ def review_hash(args, repo, hash):
 
 def gitargs():
     parser = stdargs()
-    parser.add_argument('-U', '--diff_lines', type=int, default=15, help='number of diff context lines')
     parser.add_argument('-r', '--repo', type=str, default='.', help='path to git repository')
     parser.add_argument('--update_tags', action='store_true', help='run ctags-universal to update the tag file')
     parser.add_argument('--verdicts', type=str, default='APPLY,CHECK,REJECT', help='review verdicts')
@@ -120,6 +119,7 @@ def apply_git_args(args):
     
 if __name__ == '__main__':
     parser = gitargs()
+    parser.add_argument('-U', '--diff_lines', type=int, default=15, help='number of diff context lines')
     parser.add_argument('--raw', action='store_true', help='do not reformat output')
     parser.add_argument('hash', type=str, nargs=1, help='hash of commit to review')
     args = parser.parse_args()
