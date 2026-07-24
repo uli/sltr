@@ -1,0 +1,34 @@
+# After it has determined that it needs to use a tool call, Qwen 3.6 often
+# comes up with completely meaningless excuses not to do them anyway.
+# This pathology has proven itself resilient to prompting techniques, so
+# we just patch them out of the CoT on the fly and replace them with a tool
+# call prolog.
+{
+    '\n</think>\n\n<tool_call>\n': [
+        "Actually, I can just assume",
+        "Actually, I can just proceed without",
+        "Actually, I can just reason",	# No. 1 excuse
+        "Actually, I'll just proceed",
+        "Actually, I'll just reason",
+        "Actually, I'll just rely on my knowledge",
+        "Actually, I'll just write the reasoning",
+        "Actually, I'll just write the response",
+        "But I can also just reason",	# No. 2 excuse
+        "But I can just provide the answer",
+        "But I can just reason",
+        "But it's fine if I don't",
+        "But the tool might",
+        "But they might not be in the database",
+        "But wait, I can also just reason",
+        "But wait, the system might not have",
+        "But wait, the tool might not be necessary",
+        "I'll just proceed without",
+        "I'll just reason based on known",
+        "I think it's fine to proceed without",
+        "Let's just reason without",
+        "Wait, I can just output the reasoning",
+        "Wait, I can just reason",
+        "Wait, I'll just assume",
+        "I'll just assume",
+    ],
+}

@@ -378,6 +378,9 @@ def apply_format_args(args):
             else:
                 args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_qwen36.txt')
 
+        if args.qwen36 == True and args.corrections is None:
+            args.corrections = os.path.join(args.ai_path, 'prompts', 'corrections_tool_qwen36.txt')
+
     if args.nothink:
         args.prompt_format = args.prompt_format.replace('<think>', '')
     
