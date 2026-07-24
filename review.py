@@ -238,6 +238,20 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         if output.count('produce final answer') > 20:
             return output + "\nABORT: excessive rambling\n"
 
+        # CoT corrections
+        for correct, wrongs in args.corrections.items():
+            for wrong in wrongs:
+                if output.endswith(wrong):
+                    output = output[:-len(wrong)] + correct
+
+                    # strike out wrong output
+                    log(2, '\b' * len(wrong) + f'\033[9m{wrong}\033[0m')
+                    # corrected output in red
+                    log(2, f'\033[31m{correct}\033[0m')
+                    sys.stderr.flush()
+
+                    return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
         if output.endswith('</tool_call>'):
             # XXX: only supports Qwen 3.5/3.6
             # (gpt-oss's tool calling is broken, and I haven't tried
@@ -309,6 +323,7 @@ def stdargs():
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
     parser.add_argument('--use_related', action='store_true', help='provide related commits as context')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
+    parser.add_argument('--corrections', type=str, default=None, help='corrections file')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
     parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
 
@@ -370,6 +385,18 @@ def apply_format_args(args):
         args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post.txt')
     if args.review_pre is None:
         args.review_pre = os.path.join(args.ai_path, 'prompts', 'review_pre.txt')
+
+    if args.corrections is not None:
+        try:
+            import ast
+            with open(args.corrections, 'r') as f:
+                cor = f.read()
+            args.corrections = ast.literal_eval(cor)
+        except Exception as e:
+            sys.stderr.write(f'Failed to load corrections file: {e}\n')
+            sys.exit(2)
+    else:
+        args.corrections = dict()
 
     global log_args    
     log_args = args
