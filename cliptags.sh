@@ -10,6 +10,13 @@
 
 # Expects tags in the format "<type>:<identifier>" on stdin.
 
+# The type is not actually used (with the exception of e (enum), where it is
+# needed to parse the tags correctly). This is a feature because the type is
+# not always obvious from the context, and if the LLM guesses wrong it may
+# be confused when we tell it that the tag doesn't exist. OTOH the LLMs seem
+# to have no problems when we show them unrelated tags with the same
+# identifier, as long as we say where they are from.
+
 tags="$1"
 shift
 path="$(dirname "$tags")"
@@ -21,7 +28,7 @@ function gettag() {
         if [[ "$misc" =~ enum: ]] ; then
             enum="${misc/*enum:/}"
             gettag e "$enum"
-            return
+            continue
     	fi
     	start="$(echo "$misc"|sed 's@^.*line:\([0-9]*\).*$@\1@')"
     	end="$(echo "$misc"|sed 's@^.*end:\([0-9]*\)$@\1@')"
