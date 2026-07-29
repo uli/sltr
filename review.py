@@ -194,6 +194,35 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
 
     return results
 
+def handle_qwen3x_tool_call(args, final_prompt, n_predict, output):
+    # supports Qwen 3.5/3.6
+
+    try:
+        tool_call = output.split('<tool_call>')[-1]
+        calls = parse_tool_call(tool_call.split('</tool_call>')[0])
+
+        if len(calls) != 1:
+            response = "ERROR: There must be exactly one function call per tool call."
+        else:
+            response = execute_tool_calls(args, calls)[0]
+    except:
+        response = "ERROR: Failed to parse tool call."
+
+    # XXX: Sometimes generation stops around tool calls. Often it
+    # stops after the tool response, which seemingly can be
+    # mitigated by adding the <think> tag to the response. Sometimes
+    # it stops in the middle of generating the actual tool call. No
+    # idea what's going on there.
+    tool_res = ('<|im_end|>\n<|im_start|>user\n<tool_response>\n' +
+                response +
+                '</tool_response>\n<|im_end|>\n<|im_start|>assistant\n<think>\n')
+
+    output += tool_res
+    log(2, tool_res)
+
+    # resume generation
+    return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
     if args.vllm == False:
         r = requests.post(url(args.host, args.port) + '/completion',
@@ -252,36 +281,8 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
 
                     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
-        if output.endswith('</tool_call>'):
-            # XXX: only supports Qwen 3.5/3.6
-            # (gpt-oss's tool calling is broken, and I haven't tried
-            # anything else yet)
-
-            try:
-                tool_call = output.split('<tool_call>')[-1]
-                calls = parse_tool_call(tool_call.split('</tool_call>')[0])
-
-                if len(calls) != 1:
-                    response = "ERROR: There must be exactly one function call per tool call."
-                else:
-                    response = execute_tool_calls(args, calls)[0]
-            except:
-                response = "ERROR: Failed to parse tool call."
-
-            # XXX: Sometimes generation stops around tool calls. Often it
-            # stops after the tool response, which seemingly can be
-            # mitigated by adding the <think> tag to the response. Sometimes
-            # it stops in the middle of generating the actual tool call. No
-            # idea what's going on there.
-            tool_res = ('<|im_end|>\n<|im_start|>user\n<tool_response>\n' +
-                        response +
-                        '</tool_response>\n<|im_end|>\n<|im_start|>assistant\n<think>\n')
-
-            output += tool_res
-            log(2, tool_res)
-
-            # resume generation
-            return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+        if args.tool_format == 'qwen' and output.endswith('</tool_call>'):
+            return handle_qwen3x_tool_call(args, final_prompt, n_predict, output)
 
     log(2, '\n')
 
@@ -330,6 +331,8 @@ def stdargs():
     return parser
     
 def apply_format_args(args):
+    args.tool_format = 'none'
+
     if args.system_prompt is not None:
         with open(args.system_prompt) as f:
             args.system_prompt = grep_v(f.read(), '^#')
@@ -380,6 +383,8 @@ def apply_format_args(args):
 
         if args.qwen36 == True and args.corrections is None:
             args.corrections = os.path.join(args.ai_path, 'prompts', 'corrections_tool_qwen36.txt')
+
+        args.tool_format = 'qwen'
 
     if args.nothink:
         args.prompt_format = args.prompt_format.replace('<think>', '')
