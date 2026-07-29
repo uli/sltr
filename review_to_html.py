@@ -183,7 +183,7 @@ if __name__ == '__main__':
         body += review_commit.replace('{hash}', hash).replace('{title}', title)
 
         body += '</tr><tr>'
-        body += f'<td colspan="5">{results}</td>'
+        body += f'<td colspan="{len(contexts)+2}">{results}</td>'
         body += '</tr>'
 
         if update_html:
