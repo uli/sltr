@@ -94,7 +94,6 @@ if __name__ == '__main__':
         git_log = repo.git.log('--oneline', args.range)
 
     for l in git_log.split('\n'):
-        update_html = True
         save_review = False
 
         if ' ' in l:
@@ -121,7 +120,6 @@ if __name__ == '__main__':
             except FileNotFoundError:
                 log(1, f'\033[1mReview {count}:\033[0m\n')
                 cot, answer, verdict, fp, output = review_hash(args, repo, hash)
-                update_html = True
                 save_review = True
 
             verify = ''
@@ -154,7 +152,6 @@ if __name__ == '__main__':
                 body_add = review_reject
             else:
                 body_add = review_fail
-                update_html = False
             
             body_add = body_add.replace('</button', verify + '</button')
             body += body_add
@@ -186,7 +183,6 @@ if __name__ == '__main__':
         body += f'<td colspan="{len(contexts)+2}">{results}</td>'
         body += '</tr>'
 
-        if update_html:
-            write_html(args.out, hdr, body, review_footer)
+        write_html(args.out, hdr, body, review_footer)
         
     sys.exit(0)
