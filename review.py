@@ -223,6 +223,49 @@ def handle_qwen3x_tool_call(args, final_prompt, n_predict, output):
     # resume generation
     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
+def handle_mistral_tool_call(args, final_prompt, n_predict, output):
+    # XXX: super-dodgy
+
+    # We need to find out if the generation ended because of a tool call,
+    # but there is no end tag for tool calls.
+    # Tool calls seem to always be written on a single line, though,
+    # so we check if the last line contains the start tag.
+    tool_call = output.split('\n')[-1]
+    if '[TOOL_CALLS]' in tool_call:
+        name = 'unknown'
+
+        if (tool_call.count('[TOOL_CALLS]') > 1 or
+            tool_call.count('[ARGS]') > 1):
+            response = 'ERROR: Multiple tool calls not allowed.'
+        elif (tool_call.count('[TOOL_CALLS]') < 1 or
+            tool_call.count('[ARGS]') < 1):
+            response = 'ERROR: Invalid tool call syntax.'
+        else:
+            try:
+                tool_call = tool_call.split('[TOOL_CALLS]')[-1]
+                name, _args = tool_call.split('[ARGS]')
+                # XXX: only one argument supported
+                _args = _args.split('"')[-2]
+                response = execute_tool_calls(args,
+                    [{'function': name, 'parameters': {'identifier': _args}}])[0]
+            except:
+                response = 'ERROR: Failed to parse tool call.'
+
+        # The tool response is supposed to be wrapped in json, but I
+        # think that the heavy quoting required would transform the text so
+        # much that it would be detrimental to the quality of the output.
+        # So we simply don't do it.
+        tool_res = '[TOOL_RESULTS] [{"name": "' + name + '", "content": "' + response + '"}][/TOOL_RESULTS][THINK]'
+
+        output += tool_res
+        log(2, tool_res)
+        # resume generation
+        return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+    else:
+        # not a tool call -> end of text
+        log(2, '\n')
+        return output
+
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
     if args.vllm == False:
         r = requests.post(url(args.host, args.port) + '/completion',
@@ -283,6 +326,8 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
 
         if args.tool_format == 'qwen' and output.endswith('</tool_call>'):
             return handle_qwen3x_tool_call(args, final_prompt, n_predict, output)
+        elif args.tool_format == 'mistral' and output.endswith('</s>'):
+            return handle_mistral_tool_call(args, final_prompt, n_predict, output)
 
     log(2, '\n')
 
@@ -318,6 +363,7 @@ def stdargs():
     parser.add_argument('--glm', action='store_true', help='use format defaults for GLM models')
     parser.add_argument('--qwen35', action='store_true', help='use format defaults for Qwen 3.5 models with tool calls')
     parser.add_argument('--qwen36', action='store_true', help='use format defaults for Qwen 3.6 models with tool calls')
+    parser.add_argument('--mistral', action='store_true', help='use format defaults for Mistral models with tool calls')
     parser.add_argument('--vllm', action='store_true', help='Send vLLM-compatible requests')
     parser.add_argument('--nothink', action='store_true', help='disable reasoning')
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
@@ -385,6 +431,20 @@ def apply_format_args(args):
             args.corrections = os.path.join(args.ai_path, 'prompts', 'corrections_tool_qwen36.txt')
 
         args.tool_format = 'qwen'
+
+    elif args.mistral == True:
+        args.prompt_format = '[INST]{prompt}[/INST]\n[THINK]'
+        args.end_think = '[/THINK]'
+        args.system_prompt_format = '{prompt}'
+
+        if args.system_prompt == '':
+            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_mistral.txt')) as f:
+                args.system_prompt = grep_v(f.read(), '^#')
+
+        if args.review_post is None:
+            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_mistral.txt')
+
+        args.tool_format = 'mistral'
 
     if args.nothink:
         args.prompt_format = args.prompt_format.replace('<think>', '')

@@ -1,0 +1,22 @@
+# WARNING: This prompt does not produce good results. Tested with
+# Mistral-Small-4-119B-2603-UD-IQ4_XS, temp 0.7.
+#
+# prompt footer for Mistral with tool calls
+
+Check if this patch makes changes that may cause regressions.
+Pay special attention to changes in control flow, locking and resource allocation/deallocation.
+Check for changes in the types of return values and function arguments, both in functions defined and in functions called.
+Check if the invariants expected by the involved subsystems are still met.
+Do not assume that the patch is correct because the commit message says so!
+#
+# Check discrepancies between commit message and code.
+Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
+Check if there are unexplained functional code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
+#
+# The model is very tool call-happy, so we don't push it.
+To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, use the tools provided.
+#
+# Model is inconsistent with its answers, so we try to be as specific as possible.
+Your answer after the [/THINK] tag should consist of the following:
+- one or two sentences explaining your reasoning and
+- a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
