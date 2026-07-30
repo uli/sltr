@@ -266,6 +266,32 @@ def handle_mistral_tool_call(args, final_prompt, n_predict, output):
         log(2, '\n')
         return output
 
+def handle_glm_tool_call(args, final_prompt, n_predict, output):
+    try:
+        tool_call = output.split('<tool_call>')[-1]
+        name, _args = tool_call.split('<arg_key>', 1)
+
+        call = { 'function': name, 'parameters': {} }
+        for arg in _args.split('<arg_key>'):
+            ident, value = arg.split('<arg_value>')
+
+            ident = ident.split('</arg_key>')[0]
+            value = value.split('</arg_value')[0]
+
+            call['parameters'][ident] = value
+
+        response = execute_tool_calls(args, [call])[0]
+    except:
+        response = 'ERROR: Failed to parse tool call.'
+
+    tool_res = '<|observation|>\n<tool_response>\n' + response + '</tool_response>\n<|assistant|>\n<think>'
+
+    output += tool_res
+    log(2, tool_res)
+
+    # resume generation
+    return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
     if args.vllm == False:
         r = requests.post(url(args.host, args.port) + '/completion',
@@ -328,6 +354,8 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
             return handle_qwen3x_tool_call(args, final_prompt, n_predict, output)
         elif args.tool_format == 'mistral' and output.endswith('</s>'):
             return handle_mistral_tool_call(args, final_prompt, n_predict, output)
+        elif args.tool_format == 'glm' and output.endswith('</tool_call>'):
+            return handle_glm_tool_call(args, final_prompt, n_predict, output)
 
     log(2, '\n')
 
@@ -360,7 +388,7 @@ def stdargs():
     parser.add_argument('--r1', action='store_true', help='use format defaults for R1 models')
     parser.add_argument('--gpt', action='store_true', help='use format defaults for GPT-OSS models')
     parser.add_argument('--phi', action='store_true', help='use format defaults for Phi-4 models')
-    parser.add_argument('--glm', action='store_true', help='use format defaults for GLM models')
+    parser.add_argument('--glm', action='store_true', help='use format defaults for GLM models with tool calls')
     parser.add_argument('--qwen35', action='store_true', help='use format defaults for Qwen 3.5 models with tool calls')
     parser.add_argument('--qwen36', action='store_true', help='use format defaults for Qwen 3.6 models with tool calls')
     parser.add_argument('--mistral', action='store_true', help='use format defaults for Mistral models with tool calls')
@@ -396,9 +424,16 @@ def apply_format_args(args):
         if args.review_post is None:
             args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_gpt.txt')
     elif args.glm:
-        args.prompt_format = '<|user|>{prompt}\n<|assistant|>'
+        args.prompt_format = '<|user|>{prompt}\n<|assistant|>\n<think>'
         args.end_think = '</think>'
-        args.system_prompt_format = '<|system|>{prompt}\n'
+        args.system_prompt_format = '[gMASK]<sop><|system|>{prompt}\n'
+        if args.system_prompt == '':
+            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_glm.txt')) as f:
+                args.system_prompt = grep_v(f.read(), '^#')
+        args.tool_format = 'glm'
+
+        if args.review_post is None:
+            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_glm.txt')
     elif args.phi:
         if args.system_prompt == '':
             with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_phi4.txt')) as f:

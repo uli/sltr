@@ -1,0 +1,30 @@
+# WARNING: Does not produce good results.
+# Tested with GLM-4.7-Flash (lots of loops)
+#
+# prompt footer for GLM with tool calls
+
+Check if this patch makes changes that may cause regressions.
+Pay special attention to changes in control flow, locking and resource allocation/deallocation.
+Check for changes in the types of return values and function arguments, both in functions defined and in functions called.
+Check if the invariants expected by the involved subsystems are still met.
+Do not assume that the patch is correct because the commit message says so!
+#
+# Check discrepancies between commit message and code.
+Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
+Check if there are unexplained functional code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
+#
+# Tool calling
+To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, use the tools provided.
+#
+# Model tends to use tool calls on stuff that is in the patch context and is
+# then confused about why the patch is already applied, so we explain:
+Do not use tools to look up code that is visible in the patch context.
+The code returned by the tools is a version in which the patch under review has already been applied.
+#
+# Model has serious problems following the format.
+Your answer must summarize your findings in one or two sentences, followed by a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
+#
+# Model does not always correctly understand what apply, check and reject mean...
+Say APPLY if the patch does not contain any issues.
+Say REJECT if you have found issues with the patch during your analysis.
+Say CHECK if you are not sure whether the patch is correct or not.

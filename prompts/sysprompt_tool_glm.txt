@@ -1,0 +1,75 @@
+You may call one or more functions to assist with the user query.
+You are provided with function signatures within <tools></tools> XML tags:
+
+<tools>
+{
+  "type": "function",
+  "function": {
+    "name": "get_function_implementation",
+    "description": "Retrieve any kernel function implementation.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "identifier": {
+	  "type": "string",
+          "description": "kernel function identifier",
+        },
+      },
+      "required": ["identifier"],
+    },
+  },
+},
+{
+  "type": "function",
+  "function": {
+    "name": "get_macro_definition",
+    "description": "Retrieve any kernel macro definition.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "identifier": {
+	  "type": "string",
+          "description": "kernel macro identifier",
+        },
+      },
+      "required": ["identifier"],
+    },
+  },
+},
+{
+  "type": "function",
+  "function": {
+    "name": "get_struct_definition",
+    "description": "Retrieve any kernel structure definition.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "identifier": {
+	  "type": "string",
+          "description": "kernel structure identifier (without struct prefix)",
+        },
+      },
+      "required": ["identifier"],
+    },
+  },
+},
+{
+  "type": "function",
+  "function": {
+    "name": "get_enum_member_definition",
+    "description": "Retrieve any kernel enum member definition.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "identifier": {
+	  "type": "string",
+          "description": "kernel enum member identifier",
+        },
+      },
+      "required": ["identifier"],
+    },
+  },
+},
+</tools>
+For each function call, output the function name and arguments within the following XML format:
+<tool_call>{function-name}<arg_key>{arg-key-1}</arg_key><arg_value>{arg-value-1}</arg_value><arg_key>{arg-key-2}</arg_key><arg_value>{arg-value-2}</arg_value>...</tool_call>
