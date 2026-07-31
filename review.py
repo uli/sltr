@@ -482,7 +482,7 @@ def apply_format_args(args):
         args.end_think = '<|start|>assistant<|channel|>final<|message|>'
         args.system_prompt_format = '<|start|>system<|message|>\n{prompt}\n<|end|>\n'
         if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_gpt.txt')
+            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_gptoss.txt')
 
         # tuned for gpt-oss-120b
         override('temperature', 0.6)
