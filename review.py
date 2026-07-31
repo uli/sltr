@@ -45,10 +45,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     if rela_text is None:
         rela_text = 'Here are some related patches that can be used for reference:'
 
-    pre_file = args.review_pre
-    post_file = args.review_post
-
-    with open(pre_file) as f:
+    with open(args.review_pre) as f:
         prompt = grep_v(f.read(), '^#')
 
     prompt += f'```{input_syntax}\n'
@@ -77,11 +74,9 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
             prompt_related += f'{rela_text}\n\n'
             have_related = True
 
-        prompt_related += f'```{syntax}\n'
-        prompt_related += rel
-        prompt_related += '```\n'
+        prompt_related += f'```{syntax}\n{rel}```\n'
 
-    with open(post_file) as f:
+    with open(args.review_post) as f:
         prompt_post = grep_v(f.read(), '^#')
 
     # assemble final prompt
