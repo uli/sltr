@@ -41,6 +41,7 @@ def tokenize(args, prompt):
     return r.json()['tokens']
 
 def complete(args, content, related, input_syntax='diff', syntax='diff', rela_text=None):
+    """Assembles a prompt and sends it to complete_raw() for completion."""
     if rela_text is None:
         rela_text = 'Here are some related patches that can be used for reference:'
 
@@ -128,7 +129,9 @@ def parse_tool_call(text):
     return results
 
 # Tool call function implementations
+
 def do_get_tag(args, type, identifier):
+    """Retrieves a tag using cliptags.sh."""
     clip = subprocess.Popen(
         [os.path.join(args.ai_path, 'cliptags.sh'), args.tag_file],
         stdout = subprocess.PIPE, stdin = subprocess.PIPE)
@@ -151,7 +154,7 @@ def tool_get_enum_member_definition(args, identifier):
     return do_get_tag(args, 'e', identifier)
 
 def tool_grep_code(args, regex):
-    # XXX: "-C2" is chosen at random
+    # XXX: "-C2" has been chosen at random
     grep = subprocess.Popen(['ag', '-C2', '-H',
         '--ignore', '.git',
         '--ignore', '*.tags',
@@ -172,6 +175,7 @@ TOOL_REGISTRY = {
 }
 
 def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
+    """Dispatches a tool call to the Python implementations."""
     results = []
 
     # Not sure how much sense it makes to parse more than one function call
@@ -334,7 +338,12 @@ def is_looping(s, min_len=32, min_repeats=10):
     return False
 
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
+    """
+    Sends a prompt to the server for completion, monitoring the output to handle
+    tool calls and exceptions
+    """
     if args.vllm == False:
+        # llama.cpp API
         r = requests.post(url(args.host, args.port) + '/completion',
             json={
                 'prompt': final_prompt + output,
@@ -345,6 +354,9 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                 'stream': True
             } | args.overrides, stream=True)
     else:
+        # vLLM API
+        # XXX: barely tested, some parameters are bogus
+        # XXX: we may have to translate some overrides
         r = requests.post(url(args.host, args.port) + '/v1/completions',
             json={
                 'prompt': final_prompt + output,
@@ -357,6 +369,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
 
     for line in r.iter_lines():
         if args.vllm == False:
+            # llama.cpp response
             if line.startswith(b'data:'):
                 js = json.loads(line[6:])
                 output += js['content']
@@ -364,6 +377,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                     sys.stderr.write(js['content'])
                     sys.stderr.flush()
         else:
+            # vLLM response
             if line.startswith(b'data: [DONE]'):
                 break
             if line.startswith(b'data:'):
@@ -376,7 +390,8 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         # terminate Phi-4 rambling early
         if output.count('produce final answer') > 20:
             return output + "\nABORT: excessive rambling\n"
-        if is_looping(output, 10):
+        # terminate endless repetition
+        if is_looping(output):
             return output + f"\nABORT: endless generation\n"
 
         # CoT corrections
@@ -412,6 +427,7 @@ def log(min, s):
         sys.stderr.write(s)
 
 def stdargs():
+    """Returns an argument parser with the arguments common to all scripts."""
     ai_path = pathlib.Path(__file__).parent.absolute()
 
     parser = argparse.ArgumentParser(
@@ -452,26 +468,31 @@ def stdargs():
     return parser
     
 def apply_format_args(args):
+    """Processes complex options. Must be called to ensure all options have the desired effect."""
     global log_args
     log_args = args
 
     args.tool_format = 'none'
 
+    # handle overrides
     try:
         args.overrides = ast.literal_eval(args.overrides)
     except Exception as e:
-        log(0, f"Failed parsing overrides: {str(e)}")
+        log(0, f"Failed to parse overrides: {e}")
         sys.exit(5)
 
     def override(k, v, force=False):
         if force == True or k not in args.overrides:
             args.overrides[k] = v
 
+    # load system prompt
     if args.system_prompt is not None:
         with open(args.system_prompt) as f:
             args.system_prompt = grep_v(f.read(), '^#')
     else:
         args.system_prompt = ''
+
+    # model defaults
 
     if args.r1:
         args.prompt_format = '<｜User｜>\n{prompt}<｜Assistant｜>\n<think>'
@@ -578,6 +599,7 @@ def apply_format_args(args):
 
         args.tool_format = 'gemma'
 
+    # XXX: hardcoded <think> string; may need different approach depending on model
     if args.nothink:
         args.prompt_format = args.prompt_format.replace('<think>', '')
     
@@ -586,6 +608,7 @@ def apply_format_args(args):
     if args.review_pre is None:
         args.review_pre = os.path.join(args.ai_path, 'prompts', 'review_pre.txt')
 
+    # process corrections
     if args.corrections is not None:
         try:
             with open(args.corrections, 'r') as f:
