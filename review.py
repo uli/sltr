@@ -464,7 +464,7 @@ def stdargs():
     parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
 
     return parser
-    
+
 def apply_format_args(args):
     """Processes complex options. Must be called to ensure all options have the desired effect."""
     global log_args
@@ -492,16 +492,29 @@ def apply_format_args(args):
 
     # model defaults
 
+    def load_post(f):
+        if args.review_post is None:
+            args.review_post = os.path.join(args.ai_path, 'prompts', f)
+    def load_pre(f):
+        if args.review_pre is None:
+            args.review_pre = os.path.join(args.ai_path, 'prompts', f)
+    def load_sys(f):
+        if args.system_prompt == '':
+            with open(os.path.join(args.ai_path, 'prompts', f)) as f:
+                args.system_prompt = grep_v(f.read(), '^#')
+    def load_corrections(f):
+        if args.corrections is None:
+            args.corrections = os.path.join(args.ai_path, 'prompts', f)
+
     if args.r1:
         args.prompt_format = '<｜User｜>\n{prompt}<｜Assistant｜>\n<think>'
-        if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_r1.txt')
+        load_post('review_post_r1.txt')
+
     elif args.gpt:
         args.prompt_format = '<|start|>user<|message|>{prompt}<|end|><|start|>assistant'
         args.end_think = '<|start|>assistant<|channel|>final<|message|>'
         args.system_prompt_format = '<|start|>system<|message|>\n{prompt}\n<|end|>\n'
-        if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_gptoss.txt')
+        load_post('review_post_gptoss.txt')
 
         # tuned for gpt-oss-120b
         override('temperature', 0.6)
@@ -513,28 +526,24 @@ def apply_format_args(args):
         args.prompt_format = '<|user|>{prompt}\n<|assistant|>\n<think>'
         args.end_think = '</think>'
         args.system_prompt_format = '[gMASK]<sop><|system|>{prompt}\n'
-        if args.system_prompt == '':
-            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_glm.txt')) as f:
-                args.system_prompt = grep_v(f.read(), '^#')
+
+        load_sys('sysprompt_tool_glm.txt')
+        load_post('review_post_tool_glm.txt')
+
         args.tool_format = 'glm'
 
-        if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_glm.txt')
     elif args.phi:
-        if args.system_prompt == '':
-            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_phi4.txt')) as f:
-                args.system_prompt = grep_v(f.read(), '^#')
-        if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_phi4.txt')
+        load_sys('sysprompt_phi4.txt')
+        load_post('review_post_phi4.txt')
+
         args.prompt_format = "<|user|>{prompt}<|end|><|assistant|><think>"
+
     elif args.qwen35 == True or args.qwen36 == True:
         # Same format as QwQ, but Qwen 3.5/3.6 doesn't like to think, so we need
         # to push it a bit.
         args.prompt_format = '<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>\nThe user'
 
-        if args.system_prompt == '':
-            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_qwen35.txt')) as f:
-                args.system_prompt = grep_v(f.read(), '^#')
+        load_sys('sysprompt_tool_qwen35.txt')	# same for 3.5 and 3.6
 
         # Qwen 3.5 goes full conspiracy theory when it sees anything it
         # thinks is from the future...
@@ -542,14 +551,13 @@ def apply_format_args(args):
         args.system_prompt = ("Current date: " + datetime.today().strftime('%Y-%m-%d') +
                               '\n' + args.system_prompt)
 
-        if args.review_post is None:
-            if args.qwen35:
-                args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_qwen35.txt')
-            else:
-                args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_qwen36.txt')
+        if args.qwen35:
+            load_post('review_post_tool_qwen35.txt')
+        else:
+            load_post('review_post_tool_qwen36.txt')
 
-        if args.qwen36 == True and args.corrections is None:
-            args.corrections = os.path.join(args.ai_path, 'prompts', 'corrections_tool_qwen36.txt')
+        if args.qwen36 == True:
+            load_corrections('corrections_tool_qwen36.txt')
 
         args.tool_format = 'qwen'
 
@@ -567,12 +575,8 @@ def apply_format_args(args):
         args.end_think = '[/THINK]'
         args.system_prompt_format = '{prompt}'
 
-        if args.system_prompt == '':
-            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_mistral.txt')) as f:
-                args.system_prompt = grep_v(f.read(), '^#')
-
-        if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_mistral.txt')
+        load_sys('sysprompt_tool_mistral.txt')
+        load_post('review_post_tool_mistral.txt')
 
         args.tool_format = 'mistral'
 
@@ -580,13 +584,10 @@ def apply_format_args(args):
         args.prompt_format = "<|turn>user\n{prompt}<turn|>\n<|turn>model\n<|channel>thought\nThe user"
         args.end_think = "<channel|>"
         args.system_prompt_format = "<|turn>system\n{prompt}<turn|>"
-        if args.system_prompt == '':
-            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_gemma.txt')) as f:
-                args.system_prompt = grep_v(f.read(), '^#')
-        if args.review_post is None:
-            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_gemma.txt')
-        if args.corrections is None:
-            args.corrections = os.path.join(args.ai_path, 'prompts', 'corrections_tool_gemma.txt')
+
+        load_sys('sysprompt_tool_gemma.txt')
+        load_post('review_post_tool_gemma.txt')
+        load_corrections('corrections_tool_gemma.txt')
 
         # tuned for Gemma 4
         override('temperature', 0.4)	# format errors increase linearly with temperature
@@ -600,11 +601,10 @@ def apply_format_args(args):
     # XXX: hardcoded <think> string; may need different approach depending on model
     if args.nothink:
         args.prompt_format = args.prompt_format.replace('<think>', '')
-    
-    if args.review_post is None:
-        args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post.txt')
-    if args.review_pre is None:
-        args.review_pre = os.path.join(args.ai_path, 'prompts', 'review_pre.txt')
+
+    # use default prompt header/footer if nothing else has been set
+    load_post('review_post.txt')
+    load_pre('review_pre.txt')
 
     # process corrections
     if args.corrections is not None:
