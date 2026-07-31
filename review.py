@@ -9,6 +9,7 @@ import argparse
 import requests
 import pathlib
 import json
+import ast
 import sys
 import os
 import re
@@ -342,7 +343,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                 'cache_prompt': True,
                 'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
                 'stream': True
-            }, stream=True)
+            } | args.overrides, stream=True)
     else:
         r = requests.post(url(args.host, args.port) + '/v1/completions',
             json={
@@ -352,7 +353,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                 'cache_prompt': True,
                 'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
                 'stream': True
-            }, stream=True)
+            } | args.overrides, stream=True)
 
     for line in r.iter_lines():
         if args.vllm == False:
@@ -444,13 +445,27 @@ def stdargs():
     parser.add_argument('--use_related', action='store_true', help='provide related commits as context')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('--corrections', type=str, default=None, help='corrections file')
+    parser.add_argument('--overrides', type=str, default='{}', help='server parameter overrides')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
     parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
 
     return parser
     
 def apply_format_args(args):
+    global log_args
+    log_args = args
+
     args.tool_format = 'none'
+
+    try:
+        args.overrides = ast.literal_eval(args.overrides)
+    except Exception as e:
+        log(0, f"Failed parsing overrides: {str(e)}")
+        sys.exit(5)
+
+    def override(k, v, force=False):
+        if force == True or k not in args.overrides:
+            args.overrides[k] = v
 
     if args.system_prompt is not None:
         with open(args.system_prompt) as f:
@@ -550,7 +565,6 @@ def apply_format_args(args):
 
     if args.corrections is not None:
         try:
-            import ast
             with open(args.corrections, 'r') as f:
                 cor = f.read()
             args.corrections = ast.literal_eval(cor)
@@ -559,9 +573,6 @@ def apply_format_args(args):
             sys.exit(2)
     else:
         args.corrections = dict()
-
-    global log_args    
-    log_args = args
 
 if __name__ == '__main__':
     parser = stdargs()
