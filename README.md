@@ -82,6 +82,20 @@ In either case the file must be provided to SLTR tools as a command line option:
 Don't forget to make sure that the kernel tree checked out is the right one for the patches you
 want to have reviewed!
 
+## Inference parameters
+
+In general the server defaults specified on the `llama-server` command line are used for inference.
+
+Some model defaults (`--gpt`, `--qwen35`, `--qwen36` and `--gemma`) override the sampling parameters
+(`temperature`, `top_p`, `min_p` etc.) with ones known to work for the respective model.
+
+You can modify any parameter manually using the `--overrides` option, followed by a dictionary with
+the names and values of the server options you want to change. Example:
+
+```bash
+--overrides '{"temperature": 0.8}'
+```
+
 ## Notes
 
 SLTR does not use chat templates (jinja). You have to make sure to use command line options to
