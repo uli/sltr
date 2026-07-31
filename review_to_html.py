@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
             verify = ''
 
-            if '<tool_call>' in cot or '[TOOL_CALLS]' in cot:
+            if '<tool_call>' in cot or '[TOOL_CALLS]' in cot or '<|tool_call>' in cot:
                 verify += '<sup>T</sup>'
 
             # add a marker showing the result of verification, if there is any

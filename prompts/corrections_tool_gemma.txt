@@ -1,0 +1,21 @@
+# Gemma 4 does not try to talk itself out of using tools nearly as often as
+# Qwen 3.6, but it does happen. More often it hallucinates documentation or
+# unspecified "sources". We replace those with a tool call prolog as well.
+{
+    '<channel|><|tool_call>': [
+	"I'll assume",
+	" or just reason",
+	"Let's check the Linux kernel documentation",
+	"According to the Linux kernel documentation",
+	"According to Linux kernel documentation",
+	"according to Linux kernel doc",
+	"According to Linux kernel docs",
+	"According to the kernel documentation",
+	"According to the kernel doc",
+	"According to kernel documentation",
+	"According to kernel doc",
+	"According to some sources", # wtf?
+	"According to most resources",
+	"According to many sources",
+    ],
+}

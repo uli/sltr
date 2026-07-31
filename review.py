@@ -292,6 +292,36 @@ def handle_glm_tool_call(args, final_prompt, n_predict, output):
     # resume generation
     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
+def handle_gemma_tool_call(args, final_prompt, n_predict, output):
+    try:
+        tool_call = output.split('<|tool_call>')[-1]
+        name, _args = tool_call.split('{', 1)
+        name = name[5:]
+        call = {
+            'function': name,
+            'parameters': {}
+        }
+        # XXX: breaks when there is a comma in a string literal
+        for arg in _args.split(','):
+            arg_name, val = arg.split(':')
+            if val.startswith('<|"|>'):
+                val = val.split('<|"|>')[1]
+            else:
+                val = float(val)
+            call['parameters'][arg_name] = val
+
+        response = execute_tool_calls(args, [call])[0]
+    except Exception as e:
+        response = f"ERROR: failed to parse tool call: {e}"
+
+    tool_res = '<|tool_response><|"|>' + response + '<|"|><tool_response|>\n<|channel>thought'
+
+    output += tool_res
+    log(2, tool_res)
+
+    # resume generation
+    return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
     if args.vllm == False:
         r = requests.post(url(args.host, args.port) + '/completion',
@@ -356,6 +386,8 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
             return handle_mistral_tool_call(args, final_prompt, n_predict, output)
         elif args.tool_format == 'glm' and output.endswith('</tool_call>'):
             return handle_glm_tool_call(args, final_prompt, n_predict, output)
+        elif args.tool_format == 'gemma' and output.endswith('<tool_call|>'):
+            return handle_gemma_tool_call(args, final_prompt, n_predict, output)
 
     log(2, '\n')
 
@@ -392,6 +424,7 @@ def stdargs():
     parser.add_argument('--qwen35', action='store_true', help='use format defaults for Qwen 3.5 models with tool calls')
     parser.add_argument('--qwen36', action='store_true', help='use format defaults for Qwen 3.6 models with tool calls')
     parser.add_argument('--mistral', action='store_true', help='use format defaults for Mistral models with tool calls')
+    parser.add_argument('--gemma', action='store_true', help='use format defaults for Gemma models with tool calls')
     parser.add_argument('--vllm', action='store_true', help='Send vLLM-compatible requests')
     parser.add_argument('--nothink', action='store_true', help='disable reasoning')
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
@@ -480,6 +513,20 @@ def apply_format_args(args):
             args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_mistral.txt')
 
         args.tool_format = 'mistral'
+
+    elif args.gemma == True:
+        args.prompt_format = "<|turn>user\n{prompt}<turn|>\n<|turn>model\n<|channel>thought\nThe user"
+        args.end_think = "<channel|>"
+        args.system_prompt_format = "<|turn>system\n{prompt}<turn|>"
+        if args.system_prompt == '':
+            with open(os.path.join(args.ai_path, 'prompts', 'sysprompt_tool_gemma.txt')) as f:
+                args.system_prompt = grep_v(f.read(), '^#')
+        if args.review_post is None:
+            args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_gemma.txt')
+        if args.corrections is None:
+            args.corrections = os.path.join(args.ai_path, 'prompts', 'corrections_tool_gemma.txt')
+
+        args.tool_format = 'gemma'
 
     if args.nothink:
         args.prompt_format = args.prompt_format.replace('<think>', '')
