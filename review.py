@@ -105,29 +105,6 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
 
     return final_prompt, complete_raw(args, final_prompt, n_predict=args.max_tokens - toks)
 
-def parse_tool_call(text):
-    func_pattern = re.compile(r'<function\s*=\s*([^>]+)\s*>\s*(.*?)\s*</function>', re.DOTALL)
-    param_pattern = re.compile(r'<parameter\s*=\s*([^>]+)\s*>\s*(.*?)\s*</parameter>', re.DOTALL)
-
-    results = []
-    for func_match in func_pattern.finditer(text):
-        func_name = func_match.group(1).strip()
-        body = func_match.group(2)
-
-        # Convert list of dicts to a flat dictionary
-        parameters = {}
-        for param_match in param_pattern.finditer(body):
-            param_name = param_match.group(1).strip()
-            param_value = param_match.group(2).strip()
-            parameters[param_name] = param_value
-
-        results.append({
-            'function': func_name,
-            'parameters': parameters
-        })
-
-    return results
-
 # Tool call function implementations
 
 def do_get_tag(args, type, identifier):
@@ -199,12 +176,33 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
 
     return results
 
+def parse_qwen3x_tool_call(text):
+    func_pattern = re.compile(r'<function\s*=\s*([^>]+)\s*>\s*(.*?)\s*</function>', re.DOTALL)
+    param_pattern = re.compile(r'<parameter\s*=\s*([^>]+)\s*>\s*(.*?)\s*</parameter>', re.DOTALL)
+
+    results = []
+    for func_match in func_pattern.finditer(text):
+        func_name = func_match.group(1).strip()
+        body = func_match.group(2)
+
+        parameters = {}
+        for param_match in param_pattern.finditer(body):
+            param_name = param_match.group(1).strip()
+            param_value = param_match.group(2).strip()
+            parameters[param_name] = param_value
+
+        results.append({
+            'function': func_name,
+            'parameters': parameters
+        })
+
+    return results
+
 def handle_qwen3x_tool_call(args, final_prompt, n_predict, output):
     # supports Qwen 3.5/3.6
-
     try:
         tool_call = output.split('<tool_call>')[-1]
-        calls = parse_tool_call(tool_call.split('</tool_call>')[0])
+        calls = parse_qwen3x_tool_call(tool_call.split('</tool_call>')[0])
 
         if len(calls) != 1:
             response = "ERROR: There must be exactly one function call per tool call."
