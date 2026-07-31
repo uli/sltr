@@ -483,6 +483,13 @@ def apply_format_args(args):
         args.system_prompt_format = '<|start|>system<|message|>\n{prompt}\n<|end|>\n'
         if args.review_post is None:
             args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_gpt.txt')
+
+        # tuned for gpt-oss-120b
+        override('temperature', 0.6)
+        override('top_p', 1.0)
+        override('min_p', 0.0)
+        override('top_k', 0)
+
     elif args.glm:
         args.prompt_format = '<|user|>{prompt}\n<|assistant|>\n<think>'
         args.end_think = '</think>'
@@ -527,6 +534,15 @@ def apply_format_args(args):
 
         args.tool_format = 'qwen'
 
+        if args.qwen36 == True:
+            override('temperature', 0.6)
+            override('top_k', 20)
+            override('top_p', 1.0)
+        elif args.qwen35 == True:
+            override('temperature', 1.0)
+            override('top_k', 40)
+            override('top_p', 1.0)
+
     elif args.mistral == True:
         args.prompt_format = '[INST]{prompt}[/INST]\n[THINK]'
         args.end_think = '[/THINK]'
@@ -552,6 +568,13 @@ def apply_format_args(args):
             args.review_post = os.path.join(args.ai_path, 'prompts', 'review_post_tool_gemma.txt')
         if args.corrections is None:
             args.corrections = os.path.join(args.ai_path, 'prompts', 'corrections_tool_gemma.txt')
+
+        # tuned for Gemma 4
+        override('temperature', 0.4)	# format errors increase linearly with temperature
+        override('top_p', 0.95)
+        override('top_k', 64)
+        override('repeat_penalty', 1.08)
+        override('repeat_last_n', 2048)
 
         args.tool_format = 'gemma'
 
