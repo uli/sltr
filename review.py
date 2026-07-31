@@ -533,6 +533,12 @@ def apply_format_args(args):
 
         args.prompt_format = "<|user|>{prompt}<|end|><|assistant|><think>"
 
+        # tuned for Phi-4-reasoning-plus
+        override('temperature', 0.8)
+        override('min_p', 0.0)
+        override('top_k', 40)
+        override('top_p', 0.95)
+
     elif args.qwen35 == True or args.qwen36 == True:
         # Same format as QwQ, but Qwen 3.5/3.6 doesn't like to think, so we need
         # to push it a bit.
