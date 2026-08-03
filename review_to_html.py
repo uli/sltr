@@ -69,7 +69,7 @@ if __name__ == '__main__':
     dumpdir = args.out.replace('.html', '')
     os.makedirs(dumpdir, exist_ok=True)
 
-    hdr = hdr.replace('{prompt}', pr).replace('{props}', props(args))
+    hdr = hdr.replace('{prompt}', pr).replace('{props}', props(args)).replace('{overrides}', str(args.overrides))
     if args.system_prompt is not None:
         sp = html.escape(args.system_prompt)
     else:
