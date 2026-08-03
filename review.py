@@ -330,11 +330,24 @@ def is_looping(s, min_len=32, min_repeats=10, max_len=1024):
             return True
     return False
 
+def correct_log(wrong, correct):
+    # strike out wrong output
+    log(2, '\b' * len(wrong) + f'\033[9m{wrong}\033[0m')
+    # corrected output in red
+    log(2, f'\033[31m{correct}\033[0m')
+    sys.stderr.flush()
+
 def complete_raw(args, final_prompt, n_predict=131072, output=''):
     """
     Sends a prompt to the server for completion, monitoring the output to handle
     tool calls and exceptions
     """
+
+    def replace_tail(wrong, correct):
+        nonlocal output
+        correct_log(wrong, correct)
+        output = output[:-len(wrong)] + correct
+
     if args.vllm == False:
         # llama.cpp API
         r = requests.post(url(args.host, args.port) + '/completion',
@@ -391,14 +404,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         for correct, wrongs in args.corrections.items():
             for wrong in wrongs:
                 if output.endswith(wrong):
-                    output = output[:-len(wrong)] + correct
-
-                    # strike out wrong output
-                    log(2, '\b' * len(wrong) + f'\033[9m{wrong}\033[0m')
-                    # corrected output in red
-                    log(2, f'\033[31m{correct}\033[0m')
-                    sys.stderr.flush()
-
+                    replace_tail(wrong, correct)
                     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
         if args.tool_format == 'qwen' and output.endswith('</tool_call>'):
