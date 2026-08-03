@@ -22,6 +22,9 @@ If you do not have sufficient information to decide if a patch is correct or not
 # itself out of using them like Qwen 3.6 does.
 To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, you must use the tools provided. You must not recall from memory!
 You must verify all assumptions you make about code outside the provided context using tool calls, even if you are confident!
+# Likes to make up documentation.
+# This appears to help a lot, but corrections are still required sometimes.
+You are not able to look up documentation, man pages or datasheets.
 #
 # The model is sometimes confused when it encounters code from the patch
 # already integrated in code retrieved via tools.
