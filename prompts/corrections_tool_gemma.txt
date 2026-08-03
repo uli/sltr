@@ -5,6 +5,7 @@
     '<channel|><|tool_call>': [
 	"According to documentation",
 	"According to kernel doc",
+	"According to kernel docs",
 	"according to kernel docs",
 	"According to kernel documentation",
 	"according to Linux kernel doc",
