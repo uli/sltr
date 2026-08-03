@@ -35,4 +35,11 @@
 	"The kernel documentation",
 	"The Linux kernel documentation",
     ],
+# No non-thinking not disallowed.
+# Often happens after tool calls; instead of continuing the review it
+# immediately closes the channel and proceeds with the answer. We force
+# a little text to prevent that.
+    '<|channel>thought\nThe': [
+	'<|channel>thought\n<channel|>',
+    ],
 }
