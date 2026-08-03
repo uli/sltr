@@ -320,12 +320,12 @@ def handle_gemma_tool_call(args, final_prompt, n_predict, output):
     # resume generation
     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
-def is_looping(s, min_len=32, min_repeats=10):
+def is_looping(s, min_len=32, min_repeats=10, max_len=1024):
     """
     Checks if a string ends with a pattern at least min_len characters long
     repeating at least min_repeats times.
     """
-    for i in range(min_len, len(s) // min_repeats + min_len):
+    for i in range(min_len, min(max_len, len(s) // min_repeats)):
         if s.endswith(s[-i:] * min_repeats):
             return True
     return False
