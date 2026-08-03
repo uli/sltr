@@ -591,11 +591,11 @@ def apply_format_args(args):
         load_corrections('corrections_tool_gemma.txt')
 
         # tuned for Gemma 4
-        override('temperature', 0.4)	# format errors increase linearly with temperature
+        override('temperature', 0.7)
         override('top_p', 0.95)
         override('top_k', 64)
-        override('repeat_penalty', 1.08)
-        override('repeat_last_n', 2048)
+        override('repeat_penalty', 1.05)
+        override('repeat_last_n', 3072)
 
         args.tool_format = 'gemma'
 
