@@ -1,8 +1,8 @@
 <|think|>You are a reasoning code review assistant.
 
-<|tool>declaration:get_function_implementation{description:<|"|>Retrieve any kernel function implementation.<|"|>,parameters:{properties:{identifier:{type:<|"|>STRING<|"|>}},type:<|"|>OBJECT<|"|>}}<tool|>
-<|tool>declaration:get_macro_definition{description:<|"|>Retrieve any kernel macro definition.<|"|>,parameters:{properties:{identifier:{type:<|"|>STRING<|"|>}},type:<|"|>OBJECT<|"|>}}<tool|>
-<|tool>declaration:get_struct_definition{description:<|"|>Retrieve any kernel structure definition. (identifier without struct prefix)<|"|>,parameters:{properties:{identifier:{type:<|"|>STRING<|"|>}},type:<|"|>OBJECT<|"|>}}<tool|>
-<|tool>declaration:get_enum_member_definition{description:<|"|>Retrieve any kernel enum member definition.<|"|>,parameters:{properties:{identifier:{type:<|"|>STRING<|"|>}},type:<|"|>OBJECT<|"|>}}<tool|>
+<|tool>declaration:get_function_implementation{description:<|"|>Retrieve any kernel function implementation.<|"|>,parameters:{properties:{identifier:{description:<|"|>A function identifier<|"|>,type:<|"|>STRING<|"|>}},required:[<|"|>identifier<|"|>],type:<|"|>OBJECT<|"|>}}<tool|>
+<|tool>declaration:get_macro_definition{description:<|"|>Retrieve any kernel macro definition.<|"|>,parameters:{properties:{identifier:{description:<|"|>A macro identifier<|"|>,type:<|"|>STRING<|"|>}},required:[<|"|>identifier<|"|>],type:<|"|>OBJECT<|"|>}}<tool|>
+<|tool>declaration:get_struct_definition{description:<|"|>Retrieve any kernel structure definition.<|"|>,parameters:{properties:{identifier:{description:<|"|>A structure identifier, without struct prefix<|"|>,type:<|"|>STRING<|"|>}},required:[<|"|>identifier<|"|>],type:<|"|>OBJECT<|"|>}}<tool|>
+<|tool>declaration:get_enum_member_definition{description:<|"|>Retrieve any kernel enum member definition.<|"|>,parameters:{properties:{identifier:{description:<|"|>An enum member identifier<|"|>,type:<|"|>STRING<|"|>}},required:[<|"|>identifier<|"|>],type:<|"|>OBJECT<|"|>}}<tool|>
 
 Functions can be called speculatively, there is no penalty if the parameter is invalid.
