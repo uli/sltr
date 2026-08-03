@@ -416,6 +416,35 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         elif args.tool_format == 'gemma' and output.endswith('<tool_call|>'):
             return handle_gemma_tool_call(args, final_prompt, n_predict, output)
 
+        # Workaround for Gemma 4 which sometimes erroneously continues with the answer
+        # instead of a tool call after <channel|>.
+        # This is a bit more convoluted that I wish it would be because we don't want
+        # to preemptively generate a <|tool_call> tag because that means we would
+        # have to reprompt twice (instead of once) for each call. So we wait until the
+        # model actually screwed up and correct it after the fact.
+        if args.gemma == True:
+            last_line = output.split('\n')[-1]
+            # We are looking for lines that say "Let me use tool blabla<channel|>Okay, I'm done."
+            # i.e. lines that suggest the model intended to call a tool but failed.
+            if '<channel|>' in last_line and not last_line.endswith('<channel|>') and not '<|tool_call>' in last_line:
+                before, after = last_line.split('<channel|>', 1)
+                # Check for keywords ahead of the end-of-channel tag that suggest a tool call.
+                for kw in [' search ', ' check', ' try ', ' find ', 'definition', 'verify',
+                           ' use ', "et's see", 'implementation', 'defined']:
+                    if kw in before:
+                        # Scrap everything after the end-of-channel tag and insert a tool call instead.
+                        # (The model will reliably fill in the details.)
+                        replace_tail(after, '<|tool_call>')
+                        return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
+        # Gemma 4 sometimes ends its turn without closing the thinking channel, thus depriving
+        # us of a proper answer. Detect and fix it.
+        if args.gemma == True and output.endswith('<turn|>'):
+            last_channel = output.split('<|channel>thought')[-1]
+            if '<channel|>' not in last_channel:
+                replace_tail('<turn|>', '<channel|>')
+                return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
     log(2, '\n')
 
     return output
