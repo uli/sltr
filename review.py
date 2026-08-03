@@ -404,7 +404,12 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         for correct, wrongs in args.corrections.items():
             for wrong in wrongs:
                 if output.endswith(wrong):
-                    replace_tail(wrong, correct)
+                    if correct.startswith('APPEND:'):
+                        log(2, f'\033[32m{correct[7:]}\033[0m')
+                        sys.stderr.flush()
+                        output += correct[7:]
+                    else:
+                        replace_tail(wrong, correct)
                     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
         if args.tool_format == 'qwen' and output.endswith('</tool_call>'):
