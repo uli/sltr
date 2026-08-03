@@ -35,6 +35,42 @@
 	"The kernel documentation",
 	"The Linux kernel documentation",
     ],
+# The model often comes to a conclusion but, instead of providing the final
+# answer, keeps rechecking random stuff until the context runs out.
+# We force a channel end which triggers the answer in these cases.
+    'APPEND:<channel|>': [
+	"\nThe patch is correct.",
+	"Final answer.",
+	"Final Answer: APPLY.",
+	"Final answer follows.",
+	"Final answer is APPLY.",
+	"Final answer is CHECK.",
+	"Final answer is REJECT.",
+	"Final conclusion: APPLY.",
+	"Final conclusion: CHECK.",
+	"Final conclusion: REJECT.",
+	"Final decision: APPLY",
+	"Final Decision: APPLY.",
+	"Final decision: CHECK",
+	"Final Decision: CHECK.",
+	"Final decision made.",
+	"Final decision: REJECT",
+	"Final Decision: REJECT.",
+	"Final final final answer.",
+	"Final verdict: APPLY.",
+	"I keep repeating myself.",
+	"I'll finish now.",
+	"I'll provide the response now.",
+	"I'll stop now.",
+	"I should stop and just write the reasoning.",
+	"I will reject the patch.",
+	"I will REJECT the patch.",
+	"Okay. I'm finished.",
+	"Okay, really finished now.",
+	"So, I'll reject it.",
+	"The patch is REJECT.",
+	"The patch is rejected.",
+    ],
 # No non-thinking not disallowed.
 # Often happens after tool calls; instead of continuing the review it
 # immediately closes the channel and proceeds with the answer. We force
