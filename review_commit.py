@@ -79,7 +79,9 @@ def review_hash(args, repo, hash):
     def is_verdict(n):
         return re.search(r'\b' + re.escape(args.verdicts[n]) + r'\b', answer)
 
-    if is_verdict(0):
+    if output.strip().split('\n')[-1].startswith('ABORT:'):
+        verdict = UNKNOWN
+    elif is_verdict(0):
         verdict = APPLY
     elif is_verdict(1):
         verdict = CHECK
