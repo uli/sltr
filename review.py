@@ -171,6 +171,9 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
 
     return results
 
+def log_tool(s):
+    log(2, f'\033[36m{s}\033[0m')
+
 def parse_qwen3x_tool_call(text):
     func_pattern = re.compile(r'<function\s*=\s*([^>]+)\s*>\s*(.*?)\s*</function>', re.DOTALL)
     param_pattern = re.compile(r'<parameter\s*=\s*([^>]+)\s*>\s*(.*?)\s*</parameter>', re.DOTALL)
@@ -216,7 +219,7 @@ def handle_qwen3x_tool_call(args, final_prompt, n_predict, output):
                 '</tool_response>\n<|im_end|>\n<|im_start|>assistant\n<think>\n')
 
     output += tool_res
-    log(2, tool_res)
+    log_tool(tool_res)
 
     # resume generation
     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
@@ -256,7 +259,7 @@ def handle_mistral_tool_call(args, final_prompt, n_predict, output):
         tool_res = '[TOOL_RESULTS] [{"name": "' + name + '", "content": "' + response + '"}][/TOOL_RESULTS][THINK]'
 
         output += tool_res
-        log(2, tool_res)
+        log_tool(tool_res)
         # resume generation
         return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
     else:
@@ -285,7 +288,7 @@ def handle_glm_tool_call(args, final_prompt, n_predict, output):
     tool_res = '<|observation|>\n<tool_response>\n' + response + '</tool_response>\n<|assistant|>\n<think>'
 
     output += tool_res
-    log(2, tool_res)
+    log_tool(tool_res)
 
     # resume generation
     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
@@ -315,7 +318,7 @@ def handle_gemma_tool_call(args, final_prompt, n_predict, output):
     tool_res = '<|tool_response><|"|>' + response + '<|"|><tool_response|>\n<|channel>thought'
 
     output += tool_res
-    log(2, tool_res)
+    log_tool(tool_res)
 
     # resume generation
     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
