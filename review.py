@@ -415,24 +415,27 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
             } | args.overrides, stream=True)
 
     for line in r.iter_lines():
-        if args.vllm == False:
-            # llama.cpp response
-            if line.startswith(b'data:'):
-                js = json.loads(line[6:])
-                output += js['content']
-                if args.verbose > 1:
-                    sys.stderr.write(js['content'])
-                    sys.stderr.flush()
-        else:
-            # vLLM response
-            if line.startswith(b'data: [DONE]'):
-                break
-            if line.startswith(b'data:'):
-                text = json.loads(line[6:].decode('utf-8'))['choices'][0]['text']
-                output += text
-                if args.verbose > 1:
-                    sys.stderr.write(text)
-                    sys.stderr.flush()
+        try:
+            if args.vllm == False:
+                # llama.cpp response
+                if line.startswith(b'data:'):
+                    js = json.loads(line[6:])
+                    output += js['content']
+                    if args.verbose > 1:
+                        sys.stderr.write(js['content'])
+                        sys.stderr.flush()
+            else:
+                # vLLM response
+                if line.startswith(b'data: [DONE]'):
+                    break
+                if line.startswith(b'data:'):
+                    text = json.loads(line[6:].decode('utf-8'))['choices'][0]['text']
+                    output += text
+                    if args.verbose > 1:
+                        sys.stderr.write(text)
+                        sys.stderr.flush()
+        except KeyError:
+            return output + f"\nABORT: Failed to parse server response: {line}\n"
 
         # terminate Phi-4 rambling early
         if output.count('produce final answer') > 20:
