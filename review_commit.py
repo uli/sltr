@@ -94,8 +94,6 @@ def review_hash(args, repo, hash):
 
 def gitargs():
     parser = stdargs()
-    parser.add_argument('-r', '--repo', type=str, default='.', help='path to git repository')
-    parser.add_argument('--update_tags', action='store_true', help='run ctags-universal to update the tag file')
     parser.add_argument('--verdicts', type=str, default='APPLY,CHECK,REJECT', help='review verdicts')
     return parser
 
@@ -103,21 +101,6 @@ def apply_git_args(args):
     apply_format_args(args)
 
     args.verdicts = args.verdicts.split(',')
-
-    if args.update_tags == False:
-        return
-
-    log(1, 'Updating tag file...\n')
-    cmd = ['ctags-universal', '--fields=+Sne', '-o',
-        os.path.realpath(args.tag_file), '-R', '.']
-    try:
-        ret = subprocess.run(cmd, cwd=args.repo)
-        if ret.returncode != 0:
-            sys.stderr.write(f'Update tags: {cmd[0]} failed.\n')
-            sys.exit(4)
-    except Exception as e:
-        sys.stderr.write(f'Could not update tags: {e}\n')
-        sys.exit(4)
     
 if __name__ == '__main__':
     parser = gitargs()

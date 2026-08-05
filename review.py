@@ -482,6 +482,7 @@ def stdargs():
                         help='template for system prompt formatting')
     parser.add_argument('--system_prompt', type=str, default=None, help='system prompt text file')
     parser.add_argument('-t', '--tag_file', type=str, default=None, help='tag file for tool calls')
+    parser.add_argument('--update_tags', action='store_true', help='run ctags-universal to update the tag file')
     parser.add_argument('--r1', action='store_true', help='use format defaults for R1 models')
     parser.add_argument('--gpt', action='store_true', help='use format defaults for GPT-OSS models')
     parser.add_argument('--phi', action='store_true', help='use format defaults for Phi-4 models')
@@ -500,6 +501,7 @@ def stdargs():
     parser.add_argument('--overrides', type=str, default='{}', help='server parameter overrides')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
     parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
+    parser.add_argument('-r', '--repo', type=str, default='.', help='path to git repository')
 
     return parser
 
@@ -661,6 +663,19 @@ def apply_format_args(args):
             sys.exit(2)
     else:
         args.corrections = dict()
+
+    if args.update_tags == True:
+        log(1, 'Updating tag file...\n')
+        cmd = ['ctags-universal', '--fields=+Sne', '-o',
+            os.path.realpath(args.tag_file), '-R', '.']
+        try:
+            ret = subprocess.run(cmd, cwd=args.repo)
+            if ret.returncode != 0:
+                sys.stderr.write(f'Update tags: {cmd[0]} failed.\n')
+                sys.exit(4)
+        except Exception as e:
+            sys.stderr.write(f'Could not update tags: {e}\n')
+            sys.exit(4)
 
 if __name__ == '__main__':
     parser = stdargs()
