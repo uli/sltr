@@ -116,14 +116,52 @@ def do_get_tag(args, type, identifier):
 
     return response
 
+def do_get_tag_semcode(args, type, identifier):
+    if type == 'f':
+        query = 'func'
+    elif type == 's' or type == 'e':
+        query = 'type'
+    semc = subprocess.Popen(
+        ['semcode', '--git-repo', args.repo, '-d', args.repo, '-q', f'{query} {identifier}'],
+        stdout = subprocess.PIPE)
+    response = semc.stdout.read().decode('utf-8')
+
+    # filter out tons of redundant fluff
+    response = grep_v(response,
+        '^(Searching for |Hash: |=== [A-Za-z]* Information ===|Name: |Declaration: )').strip() + '\n'
+    # This repeats the entire data type for no reason:
+    if '\nFields:\n' in response:
+        response = grep_v(response, '^(Fields:$|  - )')
+    # Excessively long lines without spaces break table formatting:
+    response = re.sub('─+','```', response)
+    # Deleting all of those leaves a lot of extra LFs... :)
+    response = response.replace('\n\n\n', '\n\n')
+
+    return response
+
 def tool_get_function_implementation(args, identifier):
-    return do_get_tag(args, 'f', identifier)
+    if args.semcode:
+        return do_get_tag_semcode(args, 'f', identifier)
+    else:
+        return do_get_tag(args, 'f', identifier)
 def tool_get_struct_definition(args, identifier):
-    return do_get_tag(args, 's', identifier)
+    if args.semcode:
+        return do_get_tag_semcode(args, 's', identifier)
+    else:
+        return do_get_tag(args, 's', identifier)
 def tool_get_macro_definition(args, identifier):
-    return do_get_tag(args, 'd', identifier)
+    # semcode does not index simple macros, but LLMs query them all the time, leading
+    # to a lot of failed requests.
+    # We therefore only use semcode for macros if explicitly instructed to do so.
+    if args.semcode == True and args.semcode_force_macros == True:
+        return do_get_tag(args, 'f', identifier)
+    else:
+        return do_get_tag(args, 'd', identifier)
 def tool_get_enum_member_definition(args, identifier):
-    return do_get_tag(args, 'e', identifier)
+    if args.semcode:
+        return do_get_tag(args, 'e', identifier)
+    else:
+        return do_get_tag(args, 'e', identifier)
 
 def tool_grep_code(args, regex):
     # XXX: "-C2" has been chosen at random
@@ -499,6 +537,9 @@ def stdargs():
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('--corrections', type=str, default=None, help='corrections file')
     parser.add_argument('--overrides', type=str, default='{}', help='server parameter overrides')
+    parser.add_argument('--semcode', action='store_true', help='use semcode for some tools')
+    parser.add_argument('--semcode_force_macros', action='store_true', help='force use of semcode with macro tools')
+    parser.add_argument('--update_semcode', action='store_true', help='run semcode-index to update the database')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
     parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
     parser.add_argument('-r', '--repo', type=str, default='.', help='path to git repository')
@@ -664,6 +705,10 @@ def apply_format_args(args):
     else:
         args.corrections = dict()
 
+    if args.semcode_force_macros == True and args.semcode == False:
+        log(0, "ERROR: --semcode_force_macros requires --semcode\n")
+        sys.exit(7)
+
     if args.update_tags == True:
         log(1, 'Updating tag file...\n')
         cmd = ['ctags-universal', '--fields=+Sne', '-o',
@@ -676,6 +721,18 @@ def apply_format_args(args):
         except Exception as e:
             sys.stderr.write(f'Could not update tags: {e}\n')
             sys.exit(4)
+
+    if args.update_semcode == True:
+        log(1, 'Updating semcode index...\n')
+        cmd = ['semcode-index', '-s', args.repo]
+        try:
+            ret = subprocess.run(cmd, cwd=args.repo)
+            if ret.returncode != 0:
+                sys.stderr.write(f'Update semcode index: {cmd[0]} failed.\n')
+                sys.exit(6)
+        except Exception as e:
+            sys.stderr.write(f'Could not update semcode index: {e}\n')
+            sys.exit(6)
 
 if __name__ == '__main__':
     parser = stdargs()
