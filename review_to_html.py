@@ -22,7 +22,8 @@ def props(args):
     return json.dumps(json.loads(r.text), indent=2)
 
 def htmlize(s):
-    return html.escape(s).replace('\n', '<br />\n')
+    s = html.escape(s)
+    return s
 
 def write_html(file, hdr, body, footer):
     with open(file, 'w') as f:
