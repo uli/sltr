@@ -739,7 +739,7 @@ def apply_format_args(args):
 
 if __name__ == '__main__':
     parser = stdargs()
-    parser.add_argument('-r', '--related', action='extend', nargs=1, type=str, default=[],
+    parser.add_argument('--related', action='extend', nargs=1, type=str, default=[],
                         help='files to add as additional context')
     parser.add_argument('--syntax', type=str, default='diff',
                         help='syntax tag to use for input')
