@@ -22,7 +22,27 @@ def props(args):
     return json.dumps(json.loads(r.text), indent=2)
 
 def htmlize(s):
+    def start_color(tag, col):
+        nonlocal s
+        s = s.replace(html.escape(tag), f'<span style="color: {col}">' + html.escape(tag))
+    def end_color(tag):
+        nonlocal s
+        s = s.replace(html.escape(tag), html.escape(tag) + '</span>')
+
     s = html.escape(s)
+
+    for c in ['<|tool_response>', '<tool_response>', '[TOOL_RESULTS]']:
+        start_color(c, 'cyan')
+    for c in ['<tool_response|>', '</tool_response>', '[/TOOL_RESULTS]']:
+        end_color(c)
+
+    # XXX: GLM tool calls don't have an end tag
+    for c in ['<|tool_call>', '<tool_call>']:
+        start_color(c, 'green')
+    for c in ['<tool_call|>', '</tool_call>']:
+        end_color(c)
+
+    s = re.sub(html.escape('(<[|a-z_]+>)'), r'<span style="color: magenta">\1</span>', s)
     return s
 
 def write_html(file, hdr, body, footer):
