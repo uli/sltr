@@ -60,6 +60,10 @@ if __name__ == '__main__':
 
     apply_git_args(args)
 
+    if args.out == '/dev/stdout':
+        sys.stderr.write('ERROR: must specify output file\n')
+        sys.exit(8)
+
     html_path = os.path.join(args.ai_path, 'html')
     
     def load_html(file):
