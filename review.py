@@ -28,13 +28,17 @@ def url(host, port):
 def tokenize(args, prompt):
     _url = url(args.host, args.port)
 
+    req = {}
+    if 'model' in args.overrides:
+        req['model'] = args.overrides['model']
+
     if args.vllm == True:
-        tag = 'prompt'
+        req['prompt'] = prompt
     else:
-        tag = 'content'
+        req['content'] = prompt
 
     r = requests.post(_url + '/tokenize',
-        json={tag: prompt})
+        json=req)
 
     #print(r.status_code)
     #print(r.json())
