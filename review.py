@@ -40,8 +40,10 @@ def tokenize(args, prompt):
     r = requests.post(_url + '/tokenize',
         json=req)
 
-    #print(r.status_code)
-    #print(r.json())
+    if r.status_code != 200:
+        log(0, f'Tokenize request error {r.status_code}: {r.json()}')
+        sys.exit(9)
+
     return r.json()['tokens']
 
 def complete(args, content, related, input_syntax='diff', syntax='diff', rela_text=None):
