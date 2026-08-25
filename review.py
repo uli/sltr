@@ -185,7 +185,14 @@ def tool_grep_code(args, regex, path):
         regex, realpath],
         cwd = args.repo,
         stdout = subprocess.PIPE)
-    return grep.stdout.read().decode('utf-8')
+
+    out = grep.stdout.read().decode('utf-8').replace(realrepo, '')
+
+    # discard excessively long output to prevent review FAILs
+    if len(out) > args.max_tokens * 8 / 5:
+        out = 'ERR: output too long\n'
+
+    return out
 
 TOOL_REGISTRY = {
     "grep_code": tool_grep_code,
