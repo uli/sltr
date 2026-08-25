@@ -191,7 +191,7 @@ def tool_grep_code(args, regex, path):
         cwd = args.repo,
         stdout = subprocess.PIPE)
 
-    out = grep.stdout.read().decode('utf-8').replace(realrepo, '')
+    out = grep.stdout.read().decode('utf-8').replace(realrepo + os.sep, '')
 
     # discard excessively long output to prevent review FAILs
     if len(out) > args.max_tokens * 8 / 5:
