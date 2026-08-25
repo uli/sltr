@@ -143,6 +143,11 @@ def do_get_tag_semcode(args, type, identifier):
     # Deleting all of those leaves a lot of extra LFs... :)
     response = response.replace('\n\n\n', '\n\n')
 
+    if re.match(r'Error: .*found', response):
+        alt_response = do_get_tag(args, type, identifier)
+        if 'does not exist' not in alt_response:
+            return alt_response
+
     return response
 
 def tool_get_function_implementation(args, identifier):
