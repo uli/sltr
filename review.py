@@ -559,6 +559,7 @@ def stdargs():
     parser.add_argument('--glm', action='store_true', help='use format defaults for GLM models with tool calls')
     parser.add_argument('--qwen35', action='store_true', help='use format defaults for Qwen 3.5 models with tool calls')
     parser.add_argument('--qwen36', action='store_true', help='use format defaults for Qwen 3.6 models with tool calls')
+    parser.add_argument('--qwen38', action='store_true', help='use format defaults for Qwen 3.8 models with tool calls')
     parser.add_argument('--mistral', action='store_true', help='use format defaults for Mistral models with tool calls')
     parser.add_argument('--gemma', action='store_true', help='use format defaults for Gemma models with tool calls')
     parser.add_argument('--vllm', action='store_true', help='Send vLLM-compatible requests')
@@ -688,6 +689,17 @@ def apply_format_args(args):
             override('temperature', 1.0)
             override('top_k', 40)
             override('top_p', 1.0)
+
+    elif args.qwen38 == True:
+        load_sys('sysprompt_tool_qwen38.txt')
+        load_post('review_post_tool_qwen38.txt')
+
+        args.tool_format = 'qwen'
+
+        override('temperature', 1.0)
+        override('min_p', 0.0)
+        override('top_k', 20)
+        override('top_p', 0.95)
 
     elif args.mistral == True:
         args.prompt_format = '[INST]{prompt}[/INST]\n[THINK]'

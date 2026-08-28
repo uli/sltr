@@ -1,0 +1,25 @@
+# prompt footer for Qwen 3.8 with tool calls
+
+Analyze what changes this patch makes to the code, then check if any of those changes may cause regressions.
+Pay special attention to changes in control flow, locking and resource allocation/deallocation.
+Check for changes in the types of return values and function arguments, both in functions defined and in functions called.
+Check if the invariants expected by the involved subsystems are still met.
+Do not assume that the patch is correct because the commit message says so!
+#
+# Check discrepancies between commit message and code.
+Check if the changes are sufficient to achieve the intent described in the commit message. If not, reject the patch.
+Check if there are unexplained functional code changes that are not required to achieve the intent described in the commit message. If there are, reject the patch.
+#
+# Model is reluctant to admit uncertainty.
+If you do not have sufficient information to decide if a patch is correct or not, mark it as CHECK.
+#
+# Tool calling
+# The model is prone to prefer guessing over tool calling, so we push it hard to do the latter.
+# XXX: This may well not apply to Qwen 3.8, but it doesn't seem to hurt either.
+To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, you must use the tools provided. You must not recall from memory!
+You must verify all assumptions you make about code outside the provided context using tool calls, even if you are confident!
+#
+# Qwen 3.8 usually answers with more than what we specify below, but at
+# first glance these verbose answers seem to be useful, so we don't push it.
+As your answer, give one or two sentences explaining your reasoning.
+Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
