@@ -483,15 +483,20 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                         output += correct[7:]
                     else:
                         replace_tail(wrong, correct)
+                    r.close()
                     return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
         if args.tool_format == 'qwen' and output.endswith('</tool_call>'):
+            r.close()
             return handle_qwen3x_tool_call(args, final_prompt, n_predict, output)
         elif args.tool_format == 'mistral' and output.endswith('</s>'):
+            r.close()
             return handle_mistral_tool_call(args, final_prompt, n_predict, output)
         elif args.tool_format == 'glm' and output.endswith('</tool_call>'):
+            r.close()
             return handle_glm_tool_call(args, final_prompt, n_predict, output)
         elif args.tool_format == 'gemma' and output.endswith('<tool_call|>'):
+            r.close()
             return handle_gemma_tool_call(args, final_prompt, n_predict, output)
 
         # Workaround for Gemma 4 which sometimes erroneously continues with the answer
@@ -513,6 +518,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                         # Scrap everything after the end-of-channel tag and insert a tool call instead.
                         # (The model will reliably fill in the details.)
                         replace_tail(after, '<|tool_call>')
+                        r.close()
                         return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
         # Gemma 4 sometimes ends its turn without closing the thinking channel, thus depriving
@@ -521,6 +527,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
             last_channel = output.split('<|channel>thought')[-1]
             if '<channel|>' not in last_channel:
                 replace_tail('<turn|>', '<channel|>')
+                r.close()
                 return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
 
     log(2, '\n')
