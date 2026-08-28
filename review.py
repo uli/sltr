@@ -189,6 +189,7 @@ def tool_grep_code(args, regex, path):
         '--ignore', '*.txt',
         '--ignore', '*.orig',
         '--ignore', '*.rej',
+        '--',
         regex, realpath],
         cwd = args.repo,
         stdout = subprocess.PIPE)
