@@ -148,6 +148,10 @@ def do_get_tag_semcode(args, type, identifier):
         if 'does not exist' not in alt_response:
             return alt_response
 
+    # discard excessively long output to prevent review FAILs
+    if len(response) > args.max_tokens * 8 / 5:
+        response = 'ERR: output too long\n'
+
     return response
 
 def tool_get_function_implementation(args, identifier):
