@@ -596,6 +596,7 @@ def apply_format_args(args):
     log_args = args
 
     args.tool_format = 'none'
+    args.system_prompt_file = None
 
     # handle overrides
     try:
@@ -610,6 +611,7 @@ def apply_format_args(args):
 
     # load system prompt
     if args.system_prompt is not None:
+        args.system_prompt_file = args.system_prompt
         with open(args.system_prompt) as f:
             args.system_prompt = grep_v(f.read(), '^#')
     else:
@@ -625,7 +627,9 @@ def apply_format_args(args):
             args.review_pre = os.path.join(args.ai_path, 'prompts', f)
     def load_sys(f):
         if args.system_prompt == '':
-            with open(os.path.join(args.ai_path, 'prompts', f)) as f:
+            file = os.path.join(args.ai_path, 'prompts', f)
+            args.system_prompt_file = file
+            with open(file) as f:
                 args.system_prompt = grep_v(f.read(), '^#')
     def load_corrections(f):
         if args.corrections is None:
@@ -747,6 +751,13 @@ def apply_format_args(args):
     # use default prompt header/footer if nothing else has been set
     load_post('review_post.txt')
     load_pre('review_pre.txt')
+
+    if args.system_prompt_file is not None:
+        log(1, f'\033[32mSystem prompt:\033[0m\t{args.system_prompt_file}\n')
+    log(1, f'\033[32mReview header:\033[0m\t{args.review_pre}\n')
+    log(1, f'\033[32mReview footer:\033[0m\t{args.review_post}\n')
+    if args.corrections is not None:
+        log(1, f'\033[32mCorrections:\033[0m\t{args.corrections}\n')
 
     # process corrections
     if args.corrections is not None:
