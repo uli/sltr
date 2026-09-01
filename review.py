@@ -108,6 +108,16 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
 
 # Tool call function implementations
 
+# ensure the path is within the repo directory
+def sanitize_path(args, path):
+    realrepo = os.path.realpath(args.repo)
+    realpath = os.path.realpath(os.path.join(args.repo, path))
+
+    if realpath != realrepo and not realpath.startswith(realrepo + os.sep):
+        return None, None
+
+    return realrepo, realpath
+
 def do_get_tag(args, type, identifier):
     """Retrieves a tag using cliptags.sh."""
     clip = subprocess.Popen(
@@ -179,9 +189,8 @@ def tool_get_enum_member_definition(args, identifier):
         return do_get_tag(args, 'e', identifier)
 
 def tool_grep_code(args, regex, path):
-    realrepo = os.path.realpath(args.repo)
-    realpath = os.path.realpath(os.path.join(args.repo, path))
-    if realpath != realrepo and not realpath.startswith(realrepo + os.sep):
+    realrepo, realpath = sanitize_path(args, path)
+    if realpath is None:
         return 'ERR: illegal path'
 
     if not os.path.exists(realpath):
