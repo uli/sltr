@@ -218,8 +218,30 @@ def tool_grep_code(args, regex, path):
 
     return out
 
+def tool_get_excerpt(args, file, start_line, end_line):
+    realrepo, realpath = sanitize_path(args, file)
+    if realpath is None:
+        return 'ERR: illegal path'
+
+    try:
+        with open(realpath) as f:
+            lines = f.read().split('\n')
+
+        start = int(start_line)
+        end = int(end_line)
+        if start > end:
+            raise ValueError
+
+        return '\n'.join(lines[start-1:end]) + '\n'
+
+    except FileNotFoundError:
+        return 'ERR: file not found'
+    except ValueError:
+        return 'ERR: illegal range'
+
 TOOL_REGISTRY = {
     "grep_code": tool_grep_code,
+    "get_excerpt": tool_get_excerpt,
     "get_function_implementation": tool_get_function_implementation,
     "get_struct_definition": tool_get_struct_definition,
     "get_macro_definition": tool_get_macro_definition,
