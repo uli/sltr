@@ -740,7 +740,7 @@ def apply_format_args(args):
             override('top_p', 1.0)
 
     elif args.qwen38 == True:
-        load_sys('sysprompt_tool_qwen38.txt')
+        load_sys('sysprompt_tool_qwen38_grep.txt')
         load_post('review_post_tool_qwen38.txt')
         load_corrections('corrections_tool_qwen38.txt')
 
