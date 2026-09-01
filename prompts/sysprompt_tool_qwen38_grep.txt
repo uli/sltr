@@ -53,6 +53,17 @@ You have access to the following functions:
     }
   }
 }
+{
+  "type": "function",
+  "function": {
+    "name": "get_excerpt",
+    "arguments": {
+      "file": "relative path to file",
+      "start_line": "first line of excerpt",
+      "end_line": "last line of excerpt",
+    }
+  }
+}
 </tools>
 
 If you choose to call a function ONLY reply in the following format with NO suffix:
