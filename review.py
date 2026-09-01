@@ -184,6 +184,9 @@ def tool_grep_code(args, regex, path):
     if realpath != realrepo and not realpath.startswith(realrepo + os.sep):
         return 'ERR: illegal path'
 
+    if not os.path.exists(realpath):
+        return 'ERR: path not found'
+
     # XXX: "-C2" has been chosen at random
     grep = subprocess.Popen(['ag', '-C2', '-H',
         '--ignore', '.git',
