@@ -1,0 +1,34 @@
+# Qwen 3.8 has a tendency to reminisce about the olden days, hallucinating
+# not just bogus code but entire development histories.
+
+# It often returns to reality when it figures out it doesn't actually know
+# anything, but equally often it doesn't, and all that waffling consumes
+# time and energy either way.
+
+{
+    '\n</think>\n': [
+	"OK, I think I need to stop going in circles and just make a decision.",
+	"Final answer.",
+    ],
+    '\n</think>\n\n<tool_call>\n': [
+	"Actually, I just remembered!",
+	"I vaguely remember",
+	"Actually, I recall",
+	"Actually, I remember!",
+	"Actually, I remember:",
+	"Let me try to recall",
+	"Let me recall",
+	"Let's recall",
+	"Actually, let me recall",
+	"Hmm, I recall",
+	"let me recall",
+	"I remember now:",
+	"Now I remember",
+    ],
+    # This might be overkill.
+    'APPEND:\n</think>\n': [
+	"Final answer: REJECT.",
+	"Final answer: CHECK.",
+	"Final answer: APPLY.",
+    ],
+}

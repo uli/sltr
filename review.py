@@ -708,6 +708,7 @@ def apply_format_args(args):
     elif args.qwen38 == True:
         load_sys('sysprompt_tool_qwen38.txt')
         load_post('review_post_tool_qwen38.txt')
+        load_corrections('corrections_tool_qwen38.txt')
 
         args.tool_format = 'qwen'
 
