@@ -57,6 +57,30 @@ python review.py \
 Run any of the tools with `--help` to find out about other options, e.g. for customizing the user
 and system prompts.
 
+## Prompt structure
+
+The prompts used consist of a system prompt (set via `--system_prompt`), a header
+(`--review_pre`), the patch under review and a footer (`--review_post`).
+
+The tool uses prompts for patch review by default and, if given the right
+model default option, appropriate system prompts and format options.
+
+The default prompts can be found in the `prompts` directory.
+
+## Corrections
+
+The tool implements a method to correct frequently encountered
+model-idiosyncratic errors using a "corrections" mechanism. The corrections
+consist of a dictionary with replacements that are substituted on the fly for any of a
+list of erroneous generations.
+
+Typical entries include phrases that precede hallucinations, and phrases that
+indicate that the model is caught in a loop. In the default corrections used
+for some models the hallucination indicators are replaced with tool call
+prologs, and the loop indicators are replaced with end-of-CoT markers.
+
+See the `corrections_*.txt` files in `prompts/` for concrete examples.
+
 ## Tag files
 
 When providing the model with tools (default for Qwen 3.5, 3.6) you have to provide a tag file for
@@ -79,21 +103,43 @@ In either case the file must be provided to SLTR tools as a command line option:
 --tag_file <kernel path>/<something>.tags
 ```
 
-Don't forget to make sure that the kernel tree checked out is the right one for the patches you
-want to have reviewed!
+Don't forget to make sure that the kernel tree checked out is clean and the
+right one for the patches you want to have reviewed!
+
+## Semcode
+
+You can use semcode as a first-choice source of code using the option
+`--semcode`. To update the semcode database before running reviews use
+`--semcode_update`.
+
+The `semcode` and `semcode-index` tools must be in the PATH.
+
+Semcode does not keep an index as complete as ctags-universal, so if a query
+does not turn up any results SLTR will fall back to ctags. It is therefore
+necessary to have an up-to-date tags file even if you are using semcode as
+the primary source.
 
 ## Inference parameters
 
 In general the server defaults specified on the `llama-server` command line are used for inference.
 
-Some model defaults (`--gpt`, `--phi`, `--qwen35`, `--qwen36` and `--gemma`) override the sampling
+Some model defaults (`--gpt`, `--phi`, `--qwen3*` and `--gemma`) override the sampling
 parameters (`temperature`, `top_p`, `min_p` etc.) with ones known to work for the respective model.
 
 You can modify any parameter manually using the `--overrides` option, followed by a dictionary with
 the names and values of the server options you want to change. Example:
 
 ```bash
---overrides '{"temperature": 0.8}'
+--overrides '{"temperature": 0.8, "top_k": 20}'
+```
+
+## llama.cpp router mode
+
+If your llama.cpp service is running in router mode you have to specify a
+model defined in your setup via overrides:
+
+```bash
+--overrides '{"model": "gemma-4-26B"}'
 ```
 
 ## Notes
