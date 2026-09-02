@@ -42,7 +42,7 @@ def htmlize(s):
     for c in ['<tool_call|>', '</tool_call>']:
         end_color(c)
 
-    s = re.sub(html.escape('(<[|a-z_]+>)'), r'<span style="color: magenta">\1</span>', s)
+    s = re.sub(html.escape('(</?[|a-z_]+>)'), r'<span style="color: magenta">\1</span>', s)
     return s
 
 def write_html(file, hdr, body, footer):
