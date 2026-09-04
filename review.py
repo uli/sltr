@@ -222,14 +222,15 @@ def tool_grep_code(args, branch, regex, path):
 
     return out
 
-def tool_get_excerpt(args, file, start_line, end_line):
+def tool_get_excerpt(args, branch, file, start_line, end_line):
+    # XXX: Is this necessary when using "git grep"?
     realrepo, realpath = sanitize_path(args, file)
     if realpath is None:
         return 'ERR: illegal path'
 
     try:
-        with open(realpath) as f:
-            lines = f.read().split('\n')
+        repo = Repo(args.repo)
+        lines = repo.git.show(branch + ':' + realpath.replace(realrepo + os.sep, '')).split('\n')
 
         start = int(start_line)
         end = int(end_line)
