@@ -210,7 +210,11 @@ def tool_grep_code(args, branch, regex, path):
     repo = Repo(args.repo)
     try:
         out = repo.git.grep(
-            '-E', '-r', '-C', '2', '-n', '--heading',
+            '-E',	# extended regex
+            '-C', '2',	# context
+            '-n',	# line numbers
+            '--heading',# only show file name once per hunk
+            '-p',	# function context
             regex, branch, '--', path)
     except exc.GitCommandError:
         # non-zero exit means nothing found, for whatever reason
