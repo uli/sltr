@@ -46,13 +46,19 @@ def tokenize(args, prompt):
 
     return r.json()['tokens']
 
+def apply_template(args, s):
+    for i in range(len(args.branches)):
+        s = s.replace(f'{{branch_{i}}}', args.branches[i])
+    s = s.replace('{branches}', ', '.join(args.branches))
+    return s
+
 def complete(args, content, related, input_syntax='diff', syntax='diff', rela_text=None):
     """Assembles a prompt and sends it to complete_raw() for completion."""
     if rela_text is None:
         rela_text = 'Here are some related patches that can be used for reference:'
 
     with open(args.review_pre) as f:
-        prompt = grep_v(f.read(), '^#')
+        prompt = apply_template(args, grep_v(f.read(), '^#'))
 
     prompt += f'```{input_syntax}\n'
 
@@ -83,7 +89,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
         prompt_related += f'```{syntax}\n{rel}```\n'
 
     with open(args.review_post) as f:
-        prompt_post = grep_v(f.read(), '^#')
+        prompt_post = apply_template(args, grep_v(f.read(), '^#'))
 
     # assemble final prompt
     final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_related + prompt_post)
@@ -618,6 +624,7 @@ def stdargs():
     parser.add_argument('--semcode', action='store_true', help='use semcode for some tools')
     parser.add_argument('--semcode_force_macros', action='store_true', help='force use of semcode with macro tools')
     parser.add_argument('--update_semcode', action='store_true', help='run semcode-index to update the database')
+    parser.add_argument('--branches', type=str, default='HEAD', help='git branches available to tools')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
     parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
     parser.add_argument('-r', '--repo', type=str, default='.', help='path to git repository')
@@ -631,6 +638,8 @@ def apply_format_args(args):
 
     args.tool_format = 'none'
     args.system_prompt_file = None
+
+    args.branches = args.branches.split(',')
 
     # handle overrides
     try:
@@ -834,6 +843,8 @@ def apply_format_args(args):
         except Exception as e:
             sys.stderr.write(f'Could not update semcode index: {e}\n')
             sys.exit(6)
+
+    args.system_prompt = apply_template(args, args.system_prompt)
 
 if __name__ == '__main__':
     parser = stdargs()
