@@ -12,6 +12,7 @@ You have access to the following functions:
   "function": {
     "name": "get_function_implementation",
     "arguments": {
+      "branch": "Git branch to search",
       "identifier": "kernel function identifier"
     }
   }
@@ -21,6 +22,7 @@ You have access to the following functions:
   "function": {
     "name": "get_macro_definition",
     "arguments": {
+      "branch": "Git branch to search",
       "identifier": "kernel macro identifier"
     }
   }
@@ -30,6 +32,7 @@ You have access to the following functions:
   "function": {
     "name": "get_struct_definition",
     "arguments": {
+      "branch": "Git branch to search",
       "identifier": "kernel structure identifier (without struct prefix)"
     }
   }
@@ -39,6 +42,7 @@ You have access to the following functions:
   "function": {
     "name": "get_enum_member_definition",
     "arguments": {
+      "branch": "Git branch to search",
       "identifier": "kernel enum member identifier"
     }
   }

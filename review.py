@@ -124,8 +124,12 @@ def sanitize_path(args, path):
 
     return realrepo, realpath
 
-def do_get_tag(args, type, identifier):
+def do_get_tag(args, branch, type, identifier):
     """Retrieves a tag using cliptags.sh."""
+
+    if branch != args.branches[0]:
+        return f"ERR: tool not available for branch {branch}\n"
+
     clip = subprocess.Popen(
         [os.path.join(args.ai_path, 'cliptags.sh'), args.tag_file],
         stdout = subprocess.PIPE, stdin = subprocess.PIPE)
@@ -138,13 +142,20 @@ def do_get_tag(args, type, identifier):
 
     return response
 
-def do_get_tag_semcode(args, type, identifier):
+def do_get_tag_semcode(args, branch, type, identifier):
     if type == 'f':
         query = 'func'
     elif type == 's' or type == 'e':
         query = 'type'
     semc = subprocess.Popen(
-        ['semcode', '--git-repo', args.repo, '-d', args.repo, '-q', f'{query} {identifier}'],
+        ['semcode',
+         '--git-only',
+         '--git-repo', args.repo,
+         '-d', args.repo,
+         '--branch', branch,
+         '-q',
+         f'{query} {identifier}'
+        ],
         stdout = subprocess.PIPE)
     response = semc.stdout.read().decode('utf-8')
 
@@ -159,7 +170,7 @@ def do_get_tag_semcode(args, type, identifier):
     # Deleting all of those leaves a lot of extra LFs... :)
     response = response.replace('\n\n\n', '\n\n')
 
-    if re.match(r'Error: .*found', response):
+    if re.match(r'Error: .*found', response) and branch == args.branches[0]:
         alt_response = do_get_tag(args, type, identifier)
         if 'does not exist' not in alt_response:
             return alt_response
@@ -170,30 +181,28 @@ def do_get_tag_semcode(args, type, identifier):
 
     return response
 
-def tool_get_function_implementation(args, identifier):
+def tool_get_function_implementation(args, branch, identifier):
     if args.semcode:
-        return do_get_tag_semcode(args, 'f', identifier)
+        return do_get_tag_semcode(args, branch, 'f', identifier)
     else:
-        return do_get_tag(args, 'f', identifier)
-def tool_get_struct_definition(args, identifier):
+        return do_get_tag(args, branch, 'f', identifier)
+def tool_get_struct_definition(args, branch, identifier):
     if args.semcode:
-        return do_get_tag_semcode(args, 's', identifier)
+        return do_get_tag_semcode(args, branch, 's', identifier)
     else:
-        return do_get_tag(args, 's', identifier)
-def tool_get_macro_definition(args, identifier):
+        return do_get_tag(args, branch, 's', identifier)
+def tool_get_macro_definition(args, branch, identifier):
     # semcode does not index simple macros, but LLMs query them all the time, leading
     # to a lot of failed requests.
     # We therefore only use semcode for macros if explicitly instructed to do so.
     if args.semcode == True and args.semcode_force_macros == True:
-        return do_get_tag(args, 'f', identifier)
+        return do_get_tag_semcode(args, branch, 'f', identifier)
     else:
-        return do_get_tag(args, 'd', identifier)
-def tool_get_enum_member_definition(args, identifier):
+        return do_get_tag(args, branch, 'd', identifier)
+def tool_get_enum_member_definition(args, branch, identifier):
     if args.semcode:
-        return do_get_tag(args, 'e', identifier)
+        return do_get_tag_semcode(args, branch, 'e', identifier)
     else:
-        return do_get_tag(args, 'e', identifier)
-
 def tool_grep_code(args, regex, path):
     realrepo, realpath = sanitize_path(args, path)
     if realpath is None:
@@ -217,6 +226,8 @@ def tool_grep_code(args, regex, path):
         stdout = subprocess.PIPE)
 
     out = grep.stdout.read().decode('utf-8').replace(realrepo + os.sep, '')
+        return do_get_tag(args, branch, 'e', identifier)
+
 
     # discard excessively long output to prevent review FAILs
     if len(out) > args.max_tokens * 8 / 5:

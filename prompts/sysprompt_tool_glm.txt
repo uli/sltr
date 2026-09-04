@@ -10,12 +10,16 @@ You are provided with function signatures within <tools></tools> XML tags:
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel function identifier",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },
@@ -27,12 +31,16 @@ You are provided with function signatures within <tools></tools> XML tags:
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel macro identifier",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },
@@ -44,12 +52,16 @@ You are provided with function signatures within <tools></tools> XML tags:
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel structure identifier (without struct prefix)",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },
@@ -61,12 +73,16 @@ You are provided with function signatures within <tools></tools> XML tags:
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel enum member identifier",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },

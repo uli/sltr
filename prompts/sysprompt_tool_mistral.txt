@@ -29,12 +29,16 @@ Always prioritize using tools to provide the most accurate and helpful response.
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel function identifier",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },
@@ -46,12 +50,16 @@ Always prioritize using tools to provide the most accurate and helpful response.
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel macro identifier",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },
@@ -63,12 +71,16 @@ Always prioritize using tools to provide the most accurate and helpful response.
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel structure identifier (without struct prefix)",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },
@@ -80,12 +92,16 @@ Always prioritize using tools to provide the most accurate and helpful response.
     "parameters": {
       "type": "object",
       "properties": {
+        "branch": {
+	  "type": "string",
+          "description": "Git branch to search",
+        },
         "identifier": {
 	  "type": "string",
           "description": "kernel enum member identifier",
         },
       },
-      "required": ["identifier"],
+      "required": ["branch", "identifier"],
     },
   },
 },
