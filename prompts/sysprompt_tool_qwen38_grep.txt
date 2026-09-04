@@ -10,42 +10,6 @@ You have access to the following functions:
 {
   "type": "function",
   "function": {
-    "name": "get_function_implementation",
-    "arguments": {
-      "identifier": "kernel function identifier"
-    }
-  }
-}
-{
-  "type": "function",
-  "function": {
-    "name": "get_macro_definition",
-    "arguments": {
-      "identifier": "kernel macro identifier"
-    }
-  }
-}
-{
-  "type": "function",
-  "function": {
-    "name": "get_struct_definition",
-    "arguments": {
-      "identifier": "kernel structure identifier (without struct prefix)"
-    }
-  }
-}
-{
-  "type": "function",
-  "function": {
-    "name": "get_enum_member_definition",
-    "arguments": {
-      "identifier": "kernel enum member identifier"
-    }
-  }
-}
-{
-  "type": "function",
-  "function": {
     "name": "grep_code",
     "arguments": {
       "branch": "Git branch to search",
@@ -89,9 +53,9 @@ multiple lines
 Reminder:
 
 - Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags
-- Required parameters MUST be specified
+- All parameters MUST be specified
 - You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after
 - Functions can be called speculatively, there is no penalty if the parameter is invalid.
 - If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls
-- You MUST NOT USE grep_code BEFORE you have tried the other tools!
+- All tool calls must be performed immediately, there is no need to aggregate them.
 </IMPORTANT>
