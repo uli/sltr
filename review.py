@@ -8,6 +8,7 @@ from git import Repo, exc
 import subprocess
 import argparse
 import requests
+import inspect
 import pathlib
 import json
 import ast
@@ -273,6 +274,12 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
         if func_name not in registry:
             results.append(f"ERROR: Undefined function '{func_name}'")
             continue
+
+        func_params = inspect.signature(registry[func_name]).parameters
+        if ('branch' not in params and
+            'branch' in func_params and
+            len(args.branches) == 1):
+            params['branch'] = args.branches[0]
 
         try:
             result = registry[func_name](args, **params)
