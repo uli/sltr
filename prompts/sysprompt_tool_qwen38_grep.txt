@@ -48,6 +48,7 @@ You have access to the following functions:
   "function": {
     "name": "grep_code",
     "arguments": {
+      "branch": "Git branch to search",
       "regex": "regular expression to search for (minimum 8 characters)",
       "path": "relative path to file or directory"
     }

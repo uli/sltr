@@ -4,6 +4,7 @@
 # Implements review prompt preparation and communication with the LLM server.
 # Can be run from the commandline with a text file as argument.
 
+from git import Repo, exc
 import subprocess
 import argparse
 import requests
@@ -203,31 +204,17 @@ def tool_get_enum_member_definition(args, branch, identifier):
     if args.semcode:
         return do_get_tag_semcode(args, branch, 'e', identifier)
     else:
-def tool_grep_code(args, regex, path):
-    realrepo, realpath = sanitize_path(args, path)
-    if realpath is None:
-        return 'ERR: illegal path'
-
-    if not os.path.exists(realpath):
-        return 'ERR: path not found'
-
-    # XXX: "-C2" has been chosen at random
-    grep = subprocess.Popen(['ag', '-C2', '-H',
-        '--ignore', '.git',
-        '--ignore', '*.tags',
-        '--ignore', '*.log',
-        '--ignore', '*.old',
-        '--ignore', '*.txt',
-        '--ignore', '*.orig',
-        '--ignore', '*.rej',
-        '--',
-        regex, realpath],
-        cwd = args.repo,
-        stdout = subprocess.PIPE)
-
-    out = grep.stdout.read().decode('utf-8').replace(realrepo + os.sep, '')
         return do_get_tag(args, branch, 'e', identifier)
 
+def tool_grep_code(args, branch, regex, path):
+    repo = Repo(args.repo)
+    try:
+        out = repo.git.grep(
+            '-E', '-r', '-C', '2', '-n', '--heading',
+            regex, branch, '--', path)
+    except exc.GitCommandError:
+        # non-zero exit means nothing found, for whatever reason
+        out = '[no matches]\n'
 
     # discard excessively long output to prevent review FAILs
     if len(out) > args.max_tokens * 8 / 5:
