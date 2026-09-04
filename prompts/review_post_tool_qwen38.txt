@@ -20,7 +20,7 @@ You must verify all assumptions you make about code outside the provided context
 # Model has a tendency to second-guess the tools.
 If a tool returns an empty response you must assume that the item you tried to inspect does not exist in the code base.
 # Model is frequently confused when it encounters code from the patch in tool results.
-The tools return results from a kernel tree with the patch under review (and possibly additional patches) already applied.
+The tools return results from the {branch_0} branch with the patch under review (and possibly additional patches) already applied.
 #
 # Qwen 3.8 usually answers with more than what we specify below, but at
 # first glance these verbose answers seem to be useful, so we don't push it.
