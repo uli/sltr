@@ -81,9 +81,18 @@ prologs, and the loop indicators are replaced with end-of-CoT markers.
 
 See the `corrections_*.txt` files in `prompts/` for concrete examples.
 
-## Tag files
+## Code inspection
 
-When providing the model with tools (default for Qwen 3.5, 3.6) you have to provide a tag file for
+Providing the LLM with code inspection tools is essential to achieve good
+results in patch triage and review. There are two kinds of tools provided
+for that purpose.
+
+If your model can handle it the recommendation is to exclusively rely on the
+tools `grep_code` and `get_excerpt`. They are implemented via Git and do not
+require creation and updating tag files or keeping your tree in a clean
+state. (This is the default when using `--qwen38`.)
+
+If you want to use tag tools (default for Qwen 3.5, 3.6) you have to provide a tag file for
 the `cliptags.sh` script.
 
 The review_commit.py and review_to_html.py scripts have the option `--update_tags` that
@@ -106,18 +115,8 @@ In either case the file must be provided to SLTR tools as a command line option:
 Don't forget to make sure that the kernel tree checked out is clean and the
 right one for the patches you want to have reviewed!
 
-## Semcode
-
-You can use semcode as a first-choice source of code using the option
-`--semcode`. To update the semcode database before running reviews use
-`--semcode_update`.
-
-The `semcode` and `semcode-index` tools must be in the PATH.
-
-Semcode does not keep an index as complete as ctags-universal, so if a query
-does not turn up any results SLTR will fall back to ctags. It is therefore
-necessary to have an up-to-date tags file even if you are using semcode as
-the primary source.
+Use of `semcode` is supported but not recommended as the output is often
+incomplete and inaccurate.
 
 ## Inference parameters
 
