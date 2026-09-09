@@ -70,8 +70,10 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
         # Yes, you have to even scrub "Link:" tags; in one case the LLM
         # reverse-engineered the name of the author from a URL.
         # XXX: make this regex a command-line option
-        prompt += grep_v(content,
-            r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Link: |^Author: |: backport to )')
+        filtered_content = grep_v(content,
+            r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Closes: |^    Link: |^Author: )')
+        filtered_content = re.sub(r'^    \[.*?\]$', '', filtered_content, flags=re.DOTALL | re.MULTILINE)
+        prompt += filtered_content
     else:
         prompt += content
 
