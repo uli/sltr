@@ -25,10 +25,4 @@
 	"I remember now:",
 	"Now I remember",
     ],
-    # This might be overkill.
-    'APPEND:\n</think>\n': [
-	"Final answer: REJECT.",
-	"Final answer: CHECK.",
-	"Final answer: APPLY.",
-    ],
 }
