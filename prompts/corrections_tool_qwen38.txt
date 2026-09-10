@@ -11,7 +11,7 @@
 	"Final answer.",
     ],
     '\n</think>\n\n<tool_call>\n': [
-	"Actually, I just remembered!",
+	"Actually, I just remembered",
 	"I vaguely remember",
 	"Actually, I recall",
 	"Actually, I remember!",
@@ -24,5 +24,12 @@
 	"let me recall",
 	"I remember now:",
 	"Now I remember",
+	"Now I recall",
+	"Let me search memory:",
+	"let me try to actually remember",
+	"I'm starting to recall",
+	"I just remembered!",
+	"actual upstream history",
+	"actually, I recall",
     ],
 }
