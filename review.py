@@ -274,7 +274,7 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
         params = call['parameters']
 
         if func_name not in registry:
-            results.append(f"ERROR: Undefined function '{func_name}'")
+            results.append(f"ERR: undefined function '{func_name}'")
             continue
 
         func_params = inspect.signature(registry[func_name]).parameters
@@ -287,7 +287,7 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
             result = registry[func_name](args, **params)
             results.append(result)
         except Exception as e:
-            results.append(f"Error executing '{func_name}': {e}")
+            results.append(f"ERR: error executing '{func_name}': {e}")
 
     return results
 
