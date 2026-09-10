@@ -277,6 +277,10 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
             results.append(f"ERR: undefined function '{func_name}'")
             continue
 
+        if 'branch' in params and params['branch'] not in args.branches:
+            results.append(f"ERR: invalid branch '{params['branch']}'")
+            continue
+
         func_params = inspect.signature(registry[func_name]).parameters
         if ('branch' not in params and
             'branch' in func_params and
