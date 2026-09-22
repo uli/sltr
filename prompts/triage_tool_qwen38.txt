@@ -1,0 +1,88 @@
+# Triage/backport prompt footer for Qwen 3.8 with tool calls
+#
+# Determines if a commit needs to be backported to an old SLTS branch and,
+# if so, proposes a backport.
+#
+# must be used with "--verdicts PORT,CHECK,IGNORE" and
+# "--branches <target kernel branch>,<source kernel branch>"
+#
+# Don't forget to use triage_pre.txt as the header to make sure the model is
+# not confused about where the commit comes from!
+
+Analyze what changes this patch makes to the {branch_1} kernel code, then check if the issue it fixes affects the {branch_0} kernel code base.
+You must use the tools provided to analyze the {branch_0} and {branch_1} code bases.
+If a tool returns an empty response you must assume that the item you tried to inspect does not exist in the code base.
+#
+# Qwen 3.5 often spends tokens on musing about the size of the diff context.
+# This workaround is not 100% reliable, but seems to help. Similarly
+# observed in Qwen 3.8, although to a lesser degree.
+The diff context is large to provide better insight into the surrounding code.
+#
+# Model is reluctant to admit uncertainty.
+If you do not have sufficient information to decide if the code base is affected by the issue, mark it as CHECK.
+#
+# Tool calling
+# The model is prone to prefer guessing over tool calling, so we push it hard to do the latter.
+To recall declarations and implementations of functions, macros, enums or structs that are not in the patch, you must use the tools provided. You must not recall from memory!
+You must verify all assumptions you make about code outside the provided context using tool calls, even if you are confident!
+You must not quote code from memory, you must use tools!
+
+# Anti-rambling clause; prevents the model from pointlessly musing about the
+# upstream history of the commit.
+The development history of the code is irrelevant.
+
+Determine if this patch must be backported to the {branch_0} kernel code base and answer with either "PORT", "CHECK" or "IGNORE".
+
+A patch must be backported (PORT) if the issue it fixes affects the {branch_0} kernel code base and:
+- it prevents unauthorized remote code execution (RCE)
+- it prevents remote denial of service attacks
+- it fixes memory management errors such as use-after-free (UAF) or double-free
+- it prevents data corruption
+- it fixes large resource leaks
+
+A patch may be backported at the maintainer's discretion (CHECK) if the issue it fixes affects the {branch_0} kernel code base and:
+- it prevents local denial of service attacks
+- it fixes a minor resource leak, for instance during initialization or deinitialization of a device
+- it prevents local privilege escalation
+- it prevents local denial of service attacks
+- it fixes leaks of internal kernel memory to userspace
+- it corrects a violation of specifications defined outside the kernel
+
+A patch must not be backported (IGNORE) if:
+#
+# valid for SLTS 4.19; adjust this for newer branches
+- it exclusively touches architecture-specific code for architectures other than arm, arm64, and x86
+#
+- it fixes code under the staging directory
+- the issue it fixes does not affect the {branch_0} kernel code
+- it does not correct an actual bug, i.e. it solely serves future-proofing or maintainibility
+- it only implements new features
+- it implements support for additional hardware
+- it does not contain any functional changes
+- it solely consists of refactoring changes
+- it fixes cosmetic issues only, such as typos or spurious warnings
+- it changes the semantics of kernel interfaces visible from userspace if userspace can reasonably be believed to rely on these semantics
+- it fixes an issue that exclusively affects kernels compiled with Clang/LLVM
+
+As your answer, give one or two sentences explaining your reasoning.
+# Make it easier to manually review if the analysis is valid.
+Separate assumptions from confirmed facts. Add an estimate of the ratio of confirmed facts versus assumptions (0.0 to 1.0) in <fact_ratio> </fact_ratio> tags.
+# Create a summary of the triage result for the SLTS kernel's .org file.
+Add a single-line (max. 40 words) summary of the verdict in <summary> </summary> tags.
+
+# The diffs produced by Qwen 3.8 are often slightly malformed, enough that
+# GNU patch complains and won't process them. Use tools/fuzzy_patch.py
+# to apply them.
+#
+If applicable, write out a modified version of the patch that applies to the {branch_0} code base:
+- body only, no commit message
+- Ensure error handling and arguments/return values follow the conventions of the {branch_0} tree.
+# Prevent the model from taking shortcuts, e.g. omitting line counts.
+- make sure to use correct GNU patch format
+# The model spends a lot of time counting lines but rarely gets it exactly
+# right in the end, so we absolve it from this pointless exercise.
+- small inaccuracies in line numbers and line counts are acceptable
+# create a backport note for the commit
+- add a short (3-20 words) explanation (only the explanation!) of the changes in <backport> </backport> tags. Only mention differences, not what is identical.
+
+Give a one-word call for action prefixed by the string "**Action:**", consisting of "PORT", "CHECK" or "IGNORE".
