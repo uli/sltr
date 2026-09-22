@@ -43,7 +43,10 @@ def tokenize(args, prompt):
         json=req)
 
     if r.status_code != 200:
-        log(0, f'Tokenize request error {r.status_code}: {r.json()}')
+        try:
+            log(0, f'Tokenize request error {r.status_code}: {r.json()}')
+        except requests.exceptions.JSONDecodeError:
+            log(0, f'Tokenize request error {r.status_code}, invalid response')
         sys.exit(9)
 
     return r.json()['tokens']
