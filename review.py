@@ -871,6 +871,7 @@ if __name__ == '__main__':
                         help='files to add as additional context')
     parser.add_argument('--syntax', type=str, default='diff',
                         help='syntax tag to use for input')
+    parser.add_argument('--answer_only', action='store_true', help='only write the answer to output file')
     parser.add_argument('input', nargs=1, type=str, help='input file')
     args = parser.parse_args()
     apply_format_args(args)
@@ -887,7 +888,10 @@ if __name__ == '__main__':
 
     if output is not None:
         with open(args.out, 'w') as f:
-            f.write(output)
+            if args.answer_only:
+                f.write(output.split(args.end_think)[-1])
+            else:
+                f.write(output)
         sys.exit(0)
     else:
         sys.exit(1)
