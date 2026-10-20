@@ -63,7 +63,10 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
         rela_text = 'Here are some related patches that can be used for reference:'
 
     with open(args.review_pre) as f:
-        prompt = apply_template(args, grep_v(f.read(), '^#'))
+        rp = f.read()
+        if args.no_prompt_comments == False:
+            rp = grep_v(rp, '^#')
+        prompt = apply_template(args, rp)
 
     prompt += f'```{input_syntax}\n'
 
@@ -96,7 +99,10 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
         prompt_related += f'```{syntax}\n{rel}```\n'
 
     with open(args.review_post) as f:
-        prompt_post = apply_template(args, grep_v(f.read(), '^#'))
+        rp = f.read()
+        if args.no_prompt_comments == False:
+            rp = grep_v(rp, '^#')
+        prompt_post = apply_template(args, rp)
 
     # assemble final prompt
     final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_related + prompt_post)
@@ -638,6 +644,7 @@ def stdargs():
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
     parser.add_argument('--use_related', action='store_true', help='provide related commits as context')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
+    parser.add_argument('--no_prompt_comments', action='store_true', help='do not remove lines starting with # from prompts')
     parser.add_argument('--corrections', type=str, default=None, help='corrections file')
     parser.add_argument('--overrides', type=str, default='{}', help='server parameter overrides')
     parser.add_argument('--semcode', action='store_true', help='use semcode for some tools')
@@ -675,7 +682,9 @@ def apply_format_args(args):
     if args.system_prompt is not None:
         args.system_prompt_file = args.system_prompt
         with open(args.system_prompt) as f:
-            args.system_prompt = grep_v(f.read(), '^#')
+            args.system_prompt = f.read()
+            if args.no_prompt_comments == False:
+                args.system_prompt = grep_v(args.system_prompt, '^#')
     else:
         args.system_prompt = ''
 
@@ -692,7 +701,9 @@ def apply_format_args(args):
             file = os.path.join(args.ai_path, 'prompts', f)
             args.system_prompt_file = file
             with open(file) as f:
-                args.system_prompt = grep_v(f.read(), '^#')
+                args.system_prompt = f.read()
+                if args.no_prompt_comments == False:
+                    args.system_prompt = grep_v(args.system_prompt, '^#')
     def load_corrections(f):
         if args.corrections is None:
             args.corrections = os.path.join(args.ai_path, 'prompts', f)
