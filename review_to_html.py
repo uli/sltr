@@ -54,6 +54,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--contexts', type=str, default="50,100,200",
                         help='list of diff context sizes to review')
     parser.add_argument('--header', type=str, default='SLTR Review')
+    parser.add_argument('--link_cot', action='store_true',
+                        help='link to CoT instead of inlining it')
     parser.add_argument('range', type=str, nargs=1,
                         help='git commit range or file with list of commits')
     args = parser.parse_args()
@@ -181,8 +183,15 @@ if __name__ == '__main__':
             body_add = body_add.replace('</button', verify + '</button')
             body += body_add
 
-            results += review_review.replace('{answer}',
-                htmlize(answer)).replace('{cot}', htmlize(cot))
+            new_result = review_review.replace('{answer}', htmlize(answer))
+
+            if args.link_cot:
+                new_result = new_result.replace('{cot}',
+                    f'<a href="{prefix}cot.txt">CoT</a>')
+            else:
+                new_result = new_result.replace('{cot}', htmlize(cot))
+
+            results += new_result
 
             if save_review:
                 try:
