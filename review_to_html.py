@@ -9,6 +9,7 @@
 from review_commit import *
 from git import Repo
 import requests
+import random
 import json
 import html
 
@@ -56,6 +57,8 @@ if __name__ == '__main__':
     parser.add_argument('--header', type=str, default='SLTR Review')
     parser.add_argument('--link_cot', action='store_true',
                         help='link to CoT instead of inlining it')
+    parser.add_argument('--randomize', action='store_true',
+                        help='randomize commit order')
     parser.add_argument('range', type=str, nargs=1,
                         help='git commit range or file with list of commits')
     args = parser.parse_args()
@@ -120,7 +123,12 @@ if __name__ == '__main__':
         # commit range
         git_log = repo.git.log('--oneline', args.range)
 
-    for l in git_log.split('\n'):
+    git_log = git_log.split('\n')
+
+    if args.randomize == True:
+        random.shuffle(git_log)
+
+    for l in git_log:
         save_review = False
 
         if ' ' in l:
