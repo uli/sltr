@@ -59,6 +59,8 @@ if __name__ == '__main__':
                         help='link to CoT instead of inlining it')
     parser.add_argument('--randomize', action='store_true',
                         help='randomize commit order')
+    parser.add_argument('--no_report', action='store_true',
+                        help='do not produce report file')
     parser.add_argument('range', type=str, nargs=1,
                         help='git commit range or file with list of commits')
     args = parser.parse_args()
@@ -225,6 +227,7 @@ if __name__ == '__main__':
         body += f'<td colspan="{len(contexts)+2}">{results}</td>'
         body += '</tr>'
 
-        write_html(args.out, hdr, body, review_footer)
+        if args.no_report == False:
+            write_html(args.out, hdr, body, review_footer)
         
     sys.exit(0)
