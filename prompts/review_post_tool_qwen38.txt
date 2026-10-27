@@ -26,6 +26,6 @@ The tools return results from the {branch_0} branch with the patch under review 
 #
 # Qwen 3.8 usually answers with more than what we specify below, but at
 # first glance these verbose answers seem to be useful, so we don't push it.
-As your answer, give one or two sentences explaining your reasoning.
-Separate assumptions from confirmed facts.
+Prefixed by the string "**Facts:**" and "**Assumptions:**", separate assumptions from confirmed facts.
+Prefixed by the string "**Conclusion:**", summarize your findings and explain your reasoning in one or two sentences.
 Give a one-word call for action prefixed by the string "**Action:**", consisting of "APPLY", "CHECK" or "REJECT".
