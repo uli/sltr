@@ -44,7 +44,7 @@ def htmlize(s):
         end_color(c)
     for c in ['\n**', ' **']:
         start_color(c, 'green')
-    for c in ['** ', '**\n', '**,', '**.', '**:']:
+    for c in ['** ', '**\n', '**,', '**.', '**:', '**;']:
         end_color(c)
     if s.startswith('**'):
         s = '<span style="color: green">' + s
