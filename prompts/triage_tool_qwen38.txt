@@ -39,6 +39,7 @@ A patch must be backported (PORT) if the issue it fixes affects the {branch_0} k
 - it fixes memory management errors such as use-after-free (UAF) or double-free
 - it prevents data corruption
 - it fixes large resource leaks
+- it prevents system crashes that could be triggered inadvertently
 
 A patch may be backported at the maintainer's discretion (CHECK) if the issue it fixes affects the {branch_0} kernel code base and:
 - it prevents local denial of service attacks
