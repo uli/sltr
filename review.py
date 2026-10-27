@@ -78,7 +78,14 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
         # XXX: make this regex a command-line option
         filtered_content = grep_v(content,
             r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Closes: |^    Link: |^Author: )')
-        filtered_content = re.sub(r'^    \[.*?\]$', '', filtered_content, flags=re.DOTALL | re.MULTILINE)
+
+        # filter backport notes
+        # Backport notes often contain important information required to
+        # analyze the patch correctly (so we can't simply remove them), but
+        # they also often contain names. This filter removes text until the
+        # first colon, assuming that that's where a name would live.
+        filtered_content = re.sub(r'^(    \[)[A-Za-z@. ]*: (.*?\])$', '\\1\\2', filtered_content, flags=re.DOTALL | re.MULTILINE)
+
         prompt += filtered_content
     else:
         prompt += content
