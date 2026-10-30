@@ -505,17 +505,16 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                 } | args.overrides, stream=True)
         else:
             # vLLM API
-            # XXX: barely tested, some parameters are bogus
             # XXX: we may have to translate some overrides
+            toks = len(tokenize(args, final_prompt + output))
             r = requests.post(url(args.host, args.port) + '/v1/completions',
                 json={
                     'prompt': final_prompt + output,
-                    'n_keep': 0,
-                    'max_tokens': n_predict,
+                    'max_tokens': args.max_tokens - toks,
                     'cache_prompt': True,
-                    'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
-                    'stream': True
-                } | args.overrides, stream=True)
+                    'stream': True,
+                    'extra_body': args.overrides,
+                }, stream=True)
     except Exception as e:
         return output + f"\nABORT: Failed to send request: {e}\n"
 
