@@ -151,6 +151,10 @@ if __name__ == '__main__':
         results = ''
         count = 0
         for context in contexts:
+            if context == 0:
+                count += 1
+                continue
+
             prefix = os.path.join(dumpdir, f'{hash}_{count}_')
 
             args.diff_lines = context
