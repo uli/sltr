@@ -9,12 +9,17 @@
 from concurrent.futures import ThreadPoolExecutor
 from review_commit import *
 from git import Repo
+from tmux import *
 import requests
 import random
 import json
 import html
 
+router = ThreadRoutedStderr(sys.stderr)
+tmux_panes = []
+
 def props(args):
+    # XXX: not implemented for vLLM
     try:
         r = requests.get(url(args.host, args.port) + '/props')
     except Exception as e:
@@ -69,6 +74,11 @@ def get_review(args, repo, dumpdir, hash, count, context):
         output = open(prefix + 'raw.txt', 'r').read().replace(fp, '')
         return cot, answer, verdict, fp, output
     except FileNotFoundError:
+        if args.tmux:
+            pane = alloc_pane(tmux_panes)
+            # redirect stderr to the next pane
+            router.set_stream(pane.handle)
+
         log(1, f'\033[1mReview {count}:\033[0m\n')
         args.diff_lines = context # XXX: racy!
         cot, answer, verdict, fp, output = review_hash(args, repo, hash)
@@ -88,6 +98,9 @@ def get_review(args, repo, dumpdir, hash, count, context):
             # some of these may not exist if the review failed
             pass
 
+        if args.tmux:
+            pane.free()
+
         return cot, answer, verdict, fp, output
 
 if __name__ == '__main__':
@@ -103,6 +116,8 @@ if __name__ == '__main__':
                         help='randomize commit order')
     parser.add_argument('--no_report', action='store_true',
                         help='do not produce report file')
+    parser.add_argument('--tmux', action='store_true',
+                        help='use tmux to separate job outputs')
     parser.add_argument('range', type=str, nargs=1,
                         help='git commit range or file with list of commits')
     args = parser.parse_args()
@@ -175,6 +190,10 @@ if __name__ == '__main__':
 
     if args.randomize == True:
         random.shuffle(git_log)
+
+    if args.tmux:
+        tmux_panes = open_tmux_panes(args.jobs)
+        sys.stderr = router
 
     executor = ThreadPoolExecutor(max_workers=args.jobs)
     reviews = {}
@@ -271,8 +290,13 @@ if __name__ == '__main__':
                 write_html(args.out, hdr, body, review_footer)
     except KeyboardInterrupt:
         # immediate exit
+        if args.tmux:
+            close_tmux_panes(tmux_panes)
         os._exit(130)
 
     executor.shutdown()
+
+    if args.tmux:
+        close_tmux_panes(tmux_panes)
 
     sys.exit(0)
