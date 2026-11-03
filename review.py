@@ -27,7 +27,7 @@ def grep_v(s, rex):
 def url(host, port):
     return f'http://{host}:{port}'
 
-def tokenize(args, prompt):
+def count_tokens(args, prompt):
     _url = url(args.host, args.port)
 
     req = {}
@@ -49,7 +49,7 @@ def tokenize(args, prompt):
             log(0, f'Tokenize request error {r.status_code}, invalid response')
         sys.exit(9)
 
-    return r.json()['tokens']
+    return len(r.json()['tokens'])
 
 def apply_template(args, s):
     for i in range(len(args.branches)):
@@ -116,12 +116,12 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     if args.system_prompt is not None:
         final_prompt = args.system_prompt_format.replace('{prompt}', args.system_prompt) + final_prompt
 
-    toks = len(tokenize(args, final_prompt))
+    toks = count_tokens(args, final_prompt)
 
     if toks > args.max_tokens:
         # Try again without related patches
         final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_post)
-        toks = len(tokenize(args, final_prompt))
+        toks = count_tokens(args, final_prompt)
         if toks > args.max_tokens:
             # Give up.
             # XXX: We might want to retry with less context.
@@ -509,7 +509,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         else:
             # vLLM API
             # XXX: we may have to translate some overrides
-            toks = len(tokenize(args, final_prompt + output))
+            toks = count_tokens(args, final_prompt + output)
             r = requests.post(url(args.host, args.port) + '/v1/completions',
                 json={
                     'prompt': final_prompt + output,
