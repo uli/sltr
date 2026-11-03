@@ -51,18 +51,10 @@ def review_hash(args, repo, hash):
     if args.no_filter == False:
         commit = filter_commit(commit)
 
-    related_commits = []
+    related = []
     rela_text = None	# default
 
-    if args.use_related == True:
-        for h in re.findall(r'[0-9a-f]{10}[0-9a-f]*', commit):
-            try:
-                related_commits.append(filter_commit(repo.git.show('-U' + str(args.diff_lines), h)))
-            except exc.GitCommandError as e:
-                # happens all the time when random numbers get misinterpreted as hashes
-                continue
-
-    fp, output = complete(args, commit, related_commits,
+    fp, output = complete(args, commit, related,
         rela_text=rela_text)
 
     if output is None:

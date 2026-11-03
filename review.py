@@ -108,7 +108,7 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
             prompt_related += f'{rela_text}\n\n'
             have_related = True
 
-        prompt_related += f'```{syntax}\n{rel}```\n'
+        prompt_related += f'```\n{rel}```\n'
 
     with open(args.review_post) as f:
         rp = f.read()
@@ -637,7 +637,6 @@ def stdargs():
     parser.add_argument('--port', type=int, default=8080, help='LLM server port')
     parser.add_argument('--review_post', type=str, default=None, help='review footer text file')
     parser.add_argument('--review_pre', type=str, default=None, help='review header text file')
-    parser.add_argument('--related_text', type=str, default=None, help='header for additional context')
     parser.add_argument('--max_tokens', type=int, default=22000, help='maximum number of prompt tokens')
     # format defaults are for Qwen-QwQ
     parser.add_argument('--prompt_format', type=str, default='<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>',
@@ -660,7 +659,6 @@ def stdargs():
     parser.add_argument('--nothink', action='store_true', help='disable reasoning')
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
-    parser.add_argument('--use_related', action='store_true', help='provide related commits as context')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('--no_prompt_comments', action='store_true', help='do not remove lines starting with # from prompts')
     parser.add_argument('--corrections', type=str, default=None, help='corrections file')
@@ -898,6 +896,7 @@ if __name__ == '__main__':
     parser = stdargs()
     parser.add_argument('--related', action='extend', nargs=1, type=str, default=[],
                         help='files to add as additional context')
+    parser.add_argument('--related_text', type=str, default=None, help='header for additional context')
     parser.add_argument('--syntax', type=str, default='diff',
                         help='syntax tag to use for input')
     parser.add_argument('--answer_only', action='store_true', help='only write the answer to output file')
