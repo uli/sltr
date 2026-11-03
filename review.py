@@ -42,7 +42,12 @@ def count_tokens(args, prompt):
     r = requests.post(_url + '/tokenize',
         json=req)
 
-    if r.status_code != 200:
+    if r.status_code == 404:
+        # Strata doesn't have a usable tokenize call (only for messages API),
+        # so we just guess.
+        return int(len(prompt) / 4)
+
+    elif r.status_code != 200:
         try:
             log(0, f'Tokenize request error {r.status_code}: {r.json()}')
         except requests.exceptions.JSONDecodeError:
