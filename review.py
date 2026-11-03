@@ -307,7 +307,10 @@ def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
             result = registry[func_name](args, **params)
             results.append(result)
         except Exception as e:
-            results.append(f"ERR: error executing '{func_name}': {e}")
+            # error message may contain absolute paths, which are none of
+            # the LLM's business
+            err = str(e).replace(os.path.realpath(args.repo), '<repo>')
+            results.append(f"ERR: error executing '{func_name}': {err}")
 
     return results
 
