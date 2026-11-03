@@ -515,6 +515,10 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                     'stream': True,
                     'extra_body': args.overrides,
                 }, stream=True)
+
+            if r.status_code != 200:
+                return output + f"\nABORT: Request error {r.status_code}: {r.json()}"
+
     except Exception as e:
         return output + f"\nABORT: Failed to send request: {e}\n"
 
