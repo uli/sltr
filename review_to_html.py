@@ -11,6 +11,7 @@ from review_commit import *
 from git import Repo
 from tmux import *
 import requests
+import atexit
 import random
 import json
 import html
@@ -193,6 +194,7 @@ if __name__ == '__main__':
 
     if args.tmux:
         tmux_panes = open_tmux_panes(args.jobs)
+        atexit.register(close_tmux_panes, tmux_panes)
         sys.stderr = router
 
     executor = ThreadPoolExecutor(max_workers=args.jobs)
@@ -296,7 +298,5 @@ if __name__ == '__main__':
 
     executor.shutdown()
 
-    if args.tmux:
-        close_tmux_panes(tmux_panes)
 
     sys.exit(0)
