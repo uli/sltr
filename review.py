@@ -514,6 +514,7 @@ def stdargs():
     parser.add_argument('--gemma', action='store_true', help='use format defaults for Gemma models with tool calls')
     parser.add_argument('--vllm', action='store_true', help='Send vLLM-compatible requests')
     parser.add_argument('--nothink', action='store_true', help='disable reasoning')
+    parser.add_argument('--think', type=str, default='<think>', help='start-of-CoT tag')
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
@@ -665,6 +666,7 @@ def apply_format_args(args):
 
     elif args.mistral == True:
         args.prompt_format = '[INST]{prompt}[/INST]\n[THINK]'
+        args.think = '[THINK]'
         args.end_think = '[/THINK]'
         args.system_prompt_format = '{prompt}'
 
@@ -691,9 +693,8 @@ def apply_format_args(args):
 
         args.tool_format = 'gemma'
 
-    # XXX: hardcoded <think> string; may need different approach depending on model
     if args.nothink:
-        args.prompt_format = args.prompt_format.replace('<think>', '')
+        args.prompt_format = args.prompt_format.replace(args.think, '')
 
     # use default prompt header/footer if nothing else has been set
     load_post('review_post.txt')
