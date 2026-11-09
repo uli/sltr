@@ -54,6 +54,24 @@ def review_hash(args, repo, hash):
     related = []
     rela_text = None	# default
 
+    if args.notes is not None:
+        note = []
+        title = grep_v(commit, '^[^ ]').split('\n')[1].strip()
+
+        for num, line in enumerate(args.note_lines):
+            if title in line:
+                for end_num, end_line in enumerate(args.note_lines[num + 1:]):
+                    if re.search(args.note_end_regex, end_line) is not None:
+                        note = args.note_lines[num + 1:num + end_num + 1]
+                        break
+
+                if len(note) > 0:
+                    related += ['\n'.join(note) + '\n']
+                    break
+
+    if len(related) > 0:
+        rela_text = args.note_header
+
     fp, output = complete(args, commit, related,
         rela_text=rela_text)
 
@@ -87,6 +105,10 @@ def review_hash(args, repo, hash):
 def gitargs():
     parser = stdargs()
     parser.add_argument('--verdicts', type=str, default='APPLY,CHECK,REJECT', help='review verdicts')
+    parser.add_argument('--notes', type=str, default=None, help='file with per-commit notes')
+    parser.add_argument('--note_end_regex', type=str, default=r'^\*\* ')
+    parser.add_argument('--note_header', type=str,
+        default="Take the maintainer's notes into account when backporting (if correct and applicable) and amend the patch accordingly if necessary:")
     return parser
 
 def apply_git_args(args):
@@ -94,6 +116,12 @@ def apply_git_args(args):
 
     args.verdicts = args.verdicts.split(',')
     
+    if args.notes is not None:
+        with open(args.notes) as f:
+            args.note_lines = f.read().split('\n')
+    else:
+        args.note_lines = []
+
 if __name__ == '__main__':
     parser = gitargs()
     parser.add_argument('-U', '--diff_lines', type=int, default=15, help='number of diff context lines')
