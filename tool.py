@@ -74,7 +74,7 @@ def do_get_tag_semcode(args, branch, type, identifier):
             return alt_response
 
     # discard excessively long output to prevent review FAILs
-    if len(response) > args.max_tokens * 8 / 5:
+    if len(response) > args.max_tokens * 4 / 5:
         response = 'ERR: output too long\n'
 
     return response
@@ -161,7 +161,7 @@ def tool_grep_code(args, branch, regex, path):
         out = '[no matches]\n'
 
     # discard excessively long output to prevent review FAILs
-    if len(out) > args.max_tokens * 8 / 5:
+    if len(out) > args.max_tokens * 4 / 5:
         out = 'ERR: output too long\n'
 
     return out
