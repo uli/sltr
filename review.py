@@ -4,7 +4,7 @@
 # Implements review prompt preparation and communication with the LLM server.
 # Can be run from the commandline with a text file as argument.
 
-from tools import TOOL_REGISTRY, register_tools
+from tool import TOOL_REGISTRY, register_tools
 import subprocess
 import argparse
 import requests
