@@ -75,17 +75,43 @@ def do_get_tag_semcode(args, branch, type, identifier):
 
     return response
 
+
 def tool_get_function_implementation(args, branch, identifier):
+    """Retrieve any kernel function implementation.
+
+    Args:
+        branch: Git branch to search.
+        identifier: Kernel function identifier.
+    """
+
     if args.semcode:
         return do_get_tag_semcode(args, branch, 'f', identifier)
     else:
         return do_get_tag(args, branch, 'f', identifier)
+
+
 def tool_get_struct_definition(args, branch, identifier):
+    """Retrieve any kernel structure definition.
+
+    Args:
+        branch: Git branch to search.
+        identifier: Kernel structure identifier (without struct prefix).
+    """
+
     if args.semcode:
         return do_get_tag_semcode(args, branch, 's', identifier)
     else:
         return do_get_tag(args, branch, 's', identifier)
+
+
 def tool_get_macro_definition(args, branch, identifier):
+    """Retrieve any kernel macro definition.
+
+    Args:
+        branch: Git branch to search.
+        identifier: Kernel macro identifier.
+    """
+
     # semcode does not index simple macros, but LLMs query them all the time, leading
     # to a lot of failed requests.
     # We therefore only use semcode for macros if explicitly instructed to do so.
@@ -93,13 +119,30 @@ def tool_get_macro_definition(args, branch, identifier):
         return do_get_tag_semcode(args, branch, 'f', identifier)
     else:
         return do_get_tag(args, branch, 'd', identifier)
+
+
 def tool_get_enum_member_definition(args, branch, identifier):
+    """Retrieve any kernel enum member definition.
+
+    Args:
+        branch: Git branch to search.
+        identifier: Kernel enum member identifier.
+    """
+
     if args.semcode:
         return do_get_tag_semcode(args, branch, 'e', identifier)
     else:
         return do_get_tag(args, branch, 'e', identifier)
 
+
 def tool_grep_code(args, branch, regex, path):
+    """Search a Git branch for code matching a regular expression.
+
+    Args:
+        branch: Git branch to search.
+        regex: Regular expression to search for (minimum 8 characters).
+        path: Relative path to file or directory (mandatory).
+    """
     repo = Repo(args.repo)
     try:
         out = repo.git.grep(
@@ -120,6 +163,15 @@ def tool_grep_code(args, branch, regex, path):
     return out
 
 def tool_get_excerpt(args, branch, file, start_line, end_line):
+    """Get an excerpt from a file.
+
+    Args:
+        branch: Git branch to search.
+        file: Relative path to file.
+        start_line: First line of excerpt.
+        end_line: Last line of excerpt.
+    """
+
     # XXX: Is this necessary when using "git grep"?
     realrepo, realpath = sanitize_path(args, file)
     if realpath is None:
