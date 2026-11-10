@@ -3,8 +3,12 @@
 
 # Tool call function implementations
 
+from typing import Any, get_args, get_origin, get_type_hints
+from docstring_parser import parse
 from git import Repo, exc
 import subprocess
+import inspect
+import json
 import os
 import re
 
@@ -194,6 +198,160 @@ def tool_get_excerpt(args, branch, file, start_line, end_line):
         return 'ERR: illegal range'
 
 
+def _json_type(annotation):
+    """Convert common Python annotations to JSON Schema types."""
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    if annotation is inspect.Parameter.empty or annotation is Any:
+        return {}
+
+    if origin is list:
+        return {
+            "type": "array",
+            "items": _json_type(args[0]) if args else {},
+        }
+
+    if origin is dict:
+        return {"type": "object"}
+
+    # Handle Optional[T] and T | None.
+    if origin is not None and type(None) in args:
+        inner = next((arg for arg in args if arg is not type(None)), Any)
+        return _json_type(inner)
+
+    type_names = {
+        str: "string",
+        int: "integer",
+        float: "number",
+        bool: "boolean",
+        list: "array",
+        dict: "object",
+    }
+    name = type_names.get(annotation)
+    return {"type": name} if name else {}
+
+
+def _tool_schema(func):
+    """Build a common schema from a function's annotations and docstring."""
+    doc = parse(inspect.getdoc(func) or "")
+    param_docs = {param.arg_name: param.description for param in doc.params}
+
+    try:
+        hints = get_type_hints(func)
+    except (NameError, TypeError):
+        hints = {}
+
+    properties = {}
+    required = []
+
+    for name, param in inspect.signature(func).parameters.items():
+        # `args` is an implementation detail, not a tool-call parameter.
+        if name == "args":
+            continue
+
+        annotation = hints.get(name, param.annotation)
+        schema = _json_type(annotation)
+        schema.setdefault("type", "string")
+
+        if param_docs.get(name):
+            schema["description"] = param_docs[name]
+
+        properties[name] = schema
+        if param.default is inspect.Parameter.empty:
+            required.append(name)
+
+    return {
+        "name": func.__name__.removeprefix("tool_"),
+        "description": doc.short_description or "",
+        "parameters": {
+            "type": "object",
+            "properties": properties,
+            "required": required,
+        },
+    }
+
+
+def _gemma_schema(schema):
+    """Serialize a schema into Gemma's declaration notation."""
+    def render(value):
+        if isinstance(value, dict):
+            entries = []
+            for key, item in value.items():
+                if key == "type" and isinstance(item, str):
+                    item = item.upper()
+                entries.append(f"{key}:{render(item)}")
+            return "{" + ",".join(entries) + "}"
+
+        if isinstance(value, list):
+            return "[" + ",".join(render(item) for item in value) + "]"
+
+        if isinstance(value, str):
+            return f'<|"|>{value}<|"|>'
+
+        return str(value).lower() if isinstance(value, bool) else str(value)
+
+    name = schema["name"]
+    body = {key: value for key, value in schema.items() if key != "name"}
+    return f"<|tool>declaration:{name}{render(body)}<tool|>"
+
+
+def _qwen_schema(schema):
+    """Serialize a schema using Qwen's argument-name-to-description format."""
+    arguments = {
+        name: details.get("description", "")
+        for name, details in schema["parameters"]["properties"].items()
+    }
+
+    return json.dumps(
+        {
+            "type": "function",
+            "function": {
+                "name": schema["name"],
+                "arguments": arguments,
+            },
+        },
+        indent=2,
+        ensure_ascii=False,
+    )
+
+
+def _standard_schema(schema):
+    """Serialize a schema as a structured function definition."""
+    return json.dumps(
+        {"type": "function", "function": schema},
+        indent=2,
+        ensure_ascii=False,
+    )
+
+
+def make_tool_definitions(args, functions):
+    """Build a string of tool definitions in the selected format.
+
+    Supported formats are qwen, gemma, glm, and mistral.
+    """
+    tool_format = args.tool_format.lower()
+    if tool_format not in {"qwen", "gemma", "glm", "mistral"}:
+        raise ValueError(f"Unsupported tool format: {args.tool_format!r}")
+
+    schemas = [_tool_schema(func) for func in functions]
+
+    if tool_format == "qwen":
+        definitions = "\n".join(_qwen_schema(schema) for schema in schemas)
+        return f"<tools>\n{definitions}\n</tools>"
+
+    if tool_format == "gemma":
+        return "\n".join(_gemma_schema(schema) for schema in schemas)
+
+    definitions = ",\n".join(_standard_schema(schema) for schema in schemas)
+
+    if tool_format == "glm":
+        return f"<tools>\n{definitions}\n</tools>"
+
+    # Mistral
+    return f"[AVAILABLE_TOOLS][{definitions}][/AVAILABLE_TOOLS]"
+
+
 TOOL_REGISTRY = {}
 
 def register_tools(tools):
@@ -211,3 +369,6 @@ def register_tools(tools):
         for t in tools:
             TOOL_REGISTRY[t] = globals()['tool_' + t]
 
+def define_tools(args):
+    args.system_prompt = args.system_prompt.replace('{tools}',
+        make_tool_definitions(args, TOOL_REGISTRY.values()))
