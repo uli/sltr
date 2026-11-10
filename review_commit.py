@@ -106,8 +106,8 @@ def gitargs():
     parser = stdargs()
     parser.add_argument('--verdicts', type=str, default='APPLY,CHECK,REJECT', help='review verdicts')
     parser.add_argument('--notes', type=str, default=None, help='file with per-commit notes')
-    parser.add_argument('--note_end_regex', type=str, default=r'^\*\* ')
-    parser.add_argument('--note_header', type=str,
+    parser.add_argument('--note_end_regex', type=str, default=r'^\*\* ', help='regex matching an end-of-note marker')
+    parser.add_argument('--note_header', type=str, help='header string for notes',
         default="Take the maintainer's notes into account when backporting (if correct and applicable) and amend the patch accordingly if necessary:")
     return parser
 

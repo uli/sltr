@@ -110,7 +110,7 @@ if __name__ == '__main__':
                         help='list of diff context sizes to review')
     parser.add_argument('-j', '--jobs', type=int, default=1,
                         help='number of reviews to run in parallel')
-    parser.add_argument('--header', type=str, default='SLTR Review')
+    parser.add_argument('--header', type=str, default='SLTR Review', help='report headline')
     parser.add_argument('--link_cot', action='store_true',
                         help='link to CoT instead of inlining it')
     parser.add_argument('--randomize', action='store_true',
