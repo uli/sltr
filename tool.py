@@ -150,8 +150,6 @@ def register_tools(tools):
     if tools is None:
         # standard tools
         TOOL_REGISTRY |= {
-            "grep_code": tool_grep_code,
-            "get_excerpt": tool_get_excerpt,
             "get_function_implementation": tool_get_function_implementation,
             "get_struct_definition": tool_get_struct_definition,
             "get_macro_definition": tool_get_macro_definition,
