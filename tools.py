@@ -141,12 +141,23 @@ def tool_get_excerpt(args, branch, file, start_line, end_line):
     except ValueError:
         return 'ERR: illegal range'
 
-TOOL_REGISTRY = {
-    "grep_code": tool_grep_code,
-    "get_excerpt": tool_get_excerpt,
-    "get_function_implementation": tool_get_function_implementation,
-    "get_struct_definition": tool_get_struct_definition,
-    "get_macro_definition": tool_get_macro_definition,
-    "get_enum_member_definition": tool_get_enum_member_definition,
-}
+
+TOOL_REGISTRY = {}
+
+def register_tools(tools):
+    global TOOL_REGISTRY
+
+    if tools is None:
+        # standard tools
+        TOOL_REGISTRY |= {
+            "grep_code": tool_grep_code,
+            "get_excerpt": tool_get_excerpt,
+            "get_function_implementation": tool_get_function_implementation,
+            "get_struct_definition": tool_get_struct_definition,
+            "get_macro_definition": tool_get_macro_definition,
+            "get_enum_member_definition": tool_get_enum_member_definition,
+        }
+    else:
+        for t in tools:
+            TOOL_REGISTRY[t] = globals()['tool_' + t]
 

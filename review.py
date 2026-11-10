@@ -4,6 +4,7 @@
 # Implements review prompt preparation and communication with the LLM server.
 # Can be run from the commandline with a text file as argument.
 
+from tools import TOOL_REGISTRY, register_tools
 import subprocess
 import argparse
 import requests
@@ -135,8 +136,6 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     log(1, f'\033[35m{toks} prompt tokens\033[0m\n')
 
     return final_prompt, complete_raw(args, final_prompt, n_predict=args.max_tokens - toks)
-
-from tools import TOOL_REGISTRY
 
 def execute_tool_calls(args, calls, registry=TOOL_REGISTRY):
     """Dispatches a tool call to the Python implementations."""
@@ -525,6 +524,7 @@ def stdargs():
     parser.add_argument('--semcode_force_macros', action='store_true', help='force use of semcode with macro tools')
     parser.add_argument('--update_semcode', action='store_true', help='run semcode-index to update the database')
     parser.add_argument('--branches', type=str, default='HEAD', help='git branches available to tools')
+    parser.add_argument('--tools', type=str, default=None, help='tools available')
     parser.add_argument('-o', '--out', type=str, default='/dev/stdout', help='output file')
     parser.add_argument('-v', '--verbose', action='count', default=0, help='increase verbosity')
     parser.add_argument('-r', '--repo', type=str, default='.', help='path to git repository')
@@ -749,6 +749,11 @@ def apply_format_args(args):
             sys.exit(6)
 
     args.system_prompt = apply_template(args, args.system_prompt)
+    
+    if args.tools is not None:
+        args.tools = args.tools.split(',')
+
+    register_tools(args.tools)
 
 if __name__ == '__main__':
     parser = stdargs()
