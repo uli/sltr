@@ -4,7 +4,7 @@
 # Implements review prompt preparation and communication with the LLM server.
 # Can be run from the commandline with a text file as argument.
 
-from tool import TOOL_REGISTRY, register_tools
+from tool import TOOL_REGISTRY, register_tools, define_tools
 import subprocess
 import argparse
 import requests
@@ -758,6 +758,7 @@ def apply_format_args(args):
         args.tools = args.tools.split(',')
 
     register_tools(args.tools)
+    define_tools(args)
 
 if __name__ == '__main__':
     parser = stdargs()
