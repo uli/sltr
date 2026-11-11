@@ -421,6 +421,33 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         except KeyError:
             return output + f"\nABORT: Failed to parse server response: {line}\n"
 
+        if args.budget == True and output.endswith('</resume_context>'):
+            resume_context = output.split('<resume_context>')[-1].split('</resume_context>')[0]
+            if '<resume_context>' in final_prompt:
+                fpp = final_prompt.split('<resume_context>', 1)[0]
+                fps = final_prompt.split('</resume_context>', 1)[1]
+            else:
+                final_prompt += f'\n\n{args.end_think}\n\nI am resuming a previous run. This is the context from which I will continue my reasoning:\n\n<resume_context>\n'
+                final_prompt += resume_context
+                final_prompt += f'\n</resume_context>\nI will now continue my analysis.\n\n{args.think}\n'
+
+            log(2, f'\033[32m{final_prompt}\033[0m')
+
+            if count_tokens(args, final_prompt) > args.max_tokens * 0.9:
+                err_msg = '\nABORT: giving up, prompt exceeds reasoning threshold\n'
+                log(2, f'\033[31m{err_msg}\033[0m')
+                return output + err_msg
+
+            r.close()
+            return complete_raw(args, final_prompt, n_predict=n_predict)
+
+        elif args.budget == True and toks > args.max_tokens * 0.9 and '<resume_context>' not in output:
+            end_context = f'\n\nReasoning budget exhausted. I must give a condensed summary of my progress, enclosed in <resume_context> </resume_context> tags, that will allow me to continue the task.\n\n{args.end_think}\n\n<resume_context>\n'
+            log(2, f'\033[32m{end_context}\033[0m')
+            output += end_context
+            r.close()
+            return complete_raw(args, final_prompt, n_predict=n_predict, output=output)
+
         # terminate Phi-4 rambling early
         if output.count('produce final answer') > 20:
             return output + "\nABORT: excessive rambling\n"
@@ -527,6 +554,7 @@ def stdargs():
     parser.add_argument('--nothink', action='store_true', help='disable reasoning')
     parser.add_argument('--think', type=str, default='<think>', help='start-of-CoT tag')
     parser.add_argument('--end_think', type=str, default='</think>', help='end-of-CoT tag')
+    parser.add_argument('--budget', action='store_true', help='enable reasoning budget enforcement')
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('--no_prompt_comments', action='store_true', help='do not remove lines starting with # from prompts')
