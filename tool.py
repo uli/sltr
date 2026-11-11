@@ -261,6 +261,25 @@ def tool_apply_patch(args, diff):
     return '[success]\n' if ok else 'ERR: Failed to apply patch.\n'
 
 
+def tool_write_file(args, file, content):
+    """Write a whole file. If the file exists it will be overwritten.
+
+    Args:
+        file: Relative path to file.
+        content: Content to write to file.
+    """
+    try:
+        base_dir, abs_path = sanitize_path(args, file)
+        if base_dir is None:
+            return 'ERR: illegal path\n'
+
+        Path(abs_path).write_text(content, encoding='utf-8')
+        return '[success]\n'
+
+    except Exception as exc:
+        return f'ERR: {exc}\n'
+
+
 def tool_read_file(args, file, start_line, end_line):
     """Read part of a file.
 
