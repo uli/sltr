@@ -276,8 +276,7 @@ def tool_apply_patch(args, diff):
     ok = apply_groups(
         groups,
         directory=args.repo,
-        max_fuzz=args.fuzz,
-        dry_run=args.dry_run,
+        max_fuzz=1,
     )
 
     return '[success]\n' if ok else 'ERR: Failed to apply patch.\n'
