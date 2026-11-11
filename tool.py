@@ -200,7 +200,9 @@ def tool_get_excerpt(args, branch, file, start_line, end_line):
 
     try:
         repo = Repo(args.repo)
-        lines = repo.git.show(branch + ':' + realpath.replace(realrepo + os.sep, '')).split('\n')
+        relpath = os.path.relpath(realpath, realrepo)
+
+        lines = repo.git.show(branch + ':' + relpath).split('\n')
 
         start = int(start_line)
         end = int(end_line)
