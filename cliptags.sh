@@ -49,5 +49,15 @@ function gettag() {
 }
 
 while IFS=':' read typ tag ; do
+	# SECURITY: "$tag" is model-supplied and is handed to readtags as a
+	# separate argument, which parses every argument starting with '-' as an
+	# option.  "-t<file>" replaces the tag file, and the file fields of a tag
+	# file are interpolated into the sed invocation below ("$path"/"$file"),
+	# so a crafted tag file makes sed print any file on the host.  A newline
+	# in a query would also inject extra queries here.  Accept nothing but
+	# plain tag queries, which is all the tag tools ever ask for.
+	if ! [[ "$typ" =~ ^[fsed]$ && "$tag" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] ; then
+		continue
+	fi
 	gettag "$typ" "$tag"
 done
