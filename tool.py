@@ -450,5 +450,8 @@ def register_tools(tools):
             TOOL_REGISTRY[t] = globals()['tool_' + t]
 
 def define_tools(args):
+    if args.tool_format == 'none':
+        return
+
     args.system_prompt = args.system_prompt.replace('{tools}',
         make_tool_definitions(args, TOOL_REGISTRY.values()))
