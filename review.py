@@ -71,54 +71,59 @@ def complete(args, content, related, input_syntax='diff', syntax='diff', rela_te
     if rela_text is None:
         rela_text = 'Here are some related patches that can be used for reference:'
 
-    with open(args.review_pre) as f:
-        rp = f.read()
-        if args.no_prompt_comments == False:
-            rp = grep_v(rp, '^#')
-        prompt = apply_template(args, rp)
-
-    prompt += f'```{input_syntax}\n'
-
-    if args.no_filter == False:
-        # remove stuff that the LLM is not supposed to consider,
-        # such as any kind of endorsement by developers or maintainers
-        # Yes, you have to even scrub "Link:" tags; in one case the LLM
-        # reverse-engineered the name of the author from a URL.
-        # XXX: make this regex a command-line option
-        filtered_content = grep_v(content,
-            r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Closes: |^    Link: |^Author: )')
-
-        # filter backport notes
-        # Backport notes often contain important information required to
-        # analyze the patch correctly (so we can't simply remove them), but
-        # they also often contain names. This filter removes text until the
-        # first colon, assuming that that's where a name would live.
-        filtered_content = re.sub(r'^(    \[)[A-Za-z@. ]*: (.*?\])$', '\\1\\2', filtered_content, flags=re.DOTALL | re.MULTILINE)
-
-        prompt += filtered_content
+    if args.raw == True:
+        prompt = content
+        prompt_related = ''
+        prompt_post = ''
     else:
-        prompt += content
+        with open(args.review_pre) as f:
+            rp = f.read()
+            if args.no_prompt_comments == False:
+                rp = grep_v(rp, '^#')
+            prompt = apply_template(args, rp)
 
-    prompt += '```\n'
+        prompt += f'```{input_syntax}\n'
 
-    # assemble related patches (if any) into a prompt fragment
-    have_related = False
-    prompt_related = ''
+        if args.no_filter == False:
+            # remove stuff that the LLM is not supposed to consider,
+            # such as any kind of endorsement by developers or maintainers
+            # Yes, you have to even scrub "Link:" tags; in one case the LLM
+            # reverse-engineered the name of the author from a URL.
+            # XXX: make this regex a command-line option
+            filtered_content = grep_v(content,
+                r'(^    [A-Z][a-z-]*-by: |^    Cc: stable|^    Fixes: |^    Closes: |^    Link: |^Author: )')
 
-    for rel in related:
-        prompt_related += '\n'
+            # filter backport notes
+            # Backport notes often contain important information required to
+            # analyze the patch correctly (so we can't simply remove them), but
+            # they also often contain names. This filter removes text until the
+            # first colon, assuming that that's where a name would live.
+            filtered_content = re.sub(r'^(    \[)[A-Za-z@. ]*: (.*?\])$', '\\1\\2', filtered_content, flags=re.DOTALL | re.MULTILINE)
 
-        if have_related == False:
-            prompt_related += f'{rela_text}\n\n'
-            have_related = True
+            prompt += filtered_content
+        else:
+            prompt += content
 
-        prompt_related += f'```\n{rel}```\n'
+        prompt += '```\n'
 
-    with open(args.review_post) as f:
-        rp = f.read()
-        if args.no_prompt_comments == False:
-            rp = grep_v(rp, '^#')
-        prompt_post = apply_template(args, rp)
+        # assemble related patches (if any) into a prompt fragment
+        have_related = False
+        prompt_related = ''
+
+        for rel in related:
+            prompt_related += '\n'
+
+            if have_related == False:
+                prompt_related += f'{rela_text}\n\n'
+                have_related = True
+
+            prompt_related += f'```\n{rel}```\n'
+
+        with open(args.review_post) as f:
+            rp = f.read()
+            if args.no_prompt_comments == False:
+                rp = grep_v(rp, '^#')
+            prompt_post = apply_template(args, rp)
 
     # assemble final prompt
     final_prompt = args.prompt_format.replace('{prompt}', prompt + prompt_related + prompt_post)
@@ -777,6 +782,7 @@ if __name__ == '__main__':
     parser.add_argument('--syntax', type=str, default='diff',
                         help='syntax tag to use for input')
     parser.add_argument('--answer_only', action='store_true', help='only write the answer to output file')
+    parser.add_argument('--raw', action='store_true', help='feed input directly to LLM, without header, footer or quote marks')
     parser.add_argument('input', nargs=1, type=str, help='input file')
     args = parser.parse_args()
     apply_format_args(args)
