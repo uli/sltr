@@ -364,6 +364,8 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         correct_log(wrong, correct)
         output = output[:-len(wrong)] + correct
 
+    toks = count_tokens(args, final_prompt + output)
+
     try:
         if args.vllm == False:
             # llama.cpp API
@@ -371,7 +373,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                 json={
                     'prompt': final_prompt + output,
                     'n_keep': 0,
-                    'n_predict': n_predict,
+                    'n_predict': args.max_tokens - toks,
                     'cache_prompt': True,
                     'stop': ["<|end_of_sentence|>", "<|User|>", "<|im_start|>user", "<|im_end|>", "<|endoftext|>"],
                     'stream': True
@@ -379,7 +381,6 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
         else:
             # vLLM API
             # XXX: we may have to translate some overrides
-            toks = count_tokens(args, final_prompt + output)
             r = requests.post(url(args.host, args.port) + '/v1/completions',
                 json={
                     'prompt': final_prompt + output,
@@ -402,6 +403,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                 if line.startswith(b'data:'):
                     js = json.loads(line[6:])
                     output += js['content']
+                    toks += 1
                     if args.verbose > 1:
                         sys.stderr.write(js['content'])
                         sys.stderr.flush()
@@ -412,6 +414,7 @@ def complete_raw(args, final_prompt, n_predict=131072, output=''):
                 if line.startswith(b'data:'):
                     text = json.loads(line[6:].decode('utf-8'))['choices'][0]['text']
                     output += text
+                    toks += 1
                     if args.verbose > 1:
                         sys.stderr.write(text)
                         sys.stderr.flush()
