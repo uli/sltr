@@ -6,6 +6,7 @@
 from typing import Any, get_args, get_origin, get_type_hints
 from docstring_parser import parse
 from git import Repo, exc
+from pathlib import Path
 import subprocess
 import inspect
 import json
@@ -196,6 +197,85 @@ def tool_get_excerpt(args, branch, file, start_line, end_line):
         return 'ERR: file not found'
     except ValueError:
         return 'ERR: illegal range'
+
+
+def tool_replace_text(args, file, old, new):
+    """Replace a string in a file.
+
+    Args:
+        file: Relative path to file.
+        old: String to replace (unique exact match).
+        new: Replacement string.
+    """
+    try:
+        base_dir, abs_path = sanitize_path(args, file)
+        if base_dir is None:
+            return "ERR: illegal file path"
+
+        if old == '':
+            return 'ERR: old text must not be empty'
+
+        file_path = Path(abs_path)
+        text = file_path.read_text(encoding="utf-8")
+        matches = text.count(old)
+
+        if matches == 0:
+            return "ERR: no exact match found"
+        if matches > 1:
+            return "ERR: more than one exact match found"
+
+        file_path.write_text(text.replace(old, new), encoding="utf-8")
+        return "[success]"
+
+    except Exception as exc:
+        return f"ERR: {exc}"
+
+
+def tool_read_file(args, file, start_line, end_line):
+    """Read part of a file.
+
+    Args:
+        file: Relative path to file.
+        start_line: First line.
+        end_line: Last line.
+    """
+    try:
+        base_dir, abs_path = sanitize_path(args, file)
+        if base_dir is None:
+            return 'ERR: illegal path'
+
+        start = int(start_line)
+        end = int(end_line)
+        if start > end:
+            raise ValueError
+
+        lines = Path(abs_path).read_text(encoding='utf-8').split('\n')
+        
+        return '\n'.join(lines[start-1:end]) + '\n'
+
+    except Exception as exc:
+        return f'ERR: {exc}'
+
+
+def tool_list_files(args, dir):
+    """List files.
+    
+    Args:
+        dir: Directory to list (relative path)
+    """
+    try:
+        base_dir, abs_path = sanitize_path(args, dir)
+        if base_dir is None:
+            return "ERR: illegal path"
+
+        directory = Path(abs_path)
+        if not directory.is_dir():
+            return "ERR: dir is not a directory"
+
+        return '\n'.join(sorted(entry.name for entry in directory.iterdir())) + '\n'
+
+    except Exception as exc:
+        return f"ERR: {exc}"
 
 
 def _json_type(annotation):
