@@ -519,6 +519,7 @@ def stdargs():
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('--no_prompt_comments', action='store_true', help='do not remove lines starting with # from prompts')
     parser.add_argument('--corrections', type=str, default=None, help='corrections file')
+    parser.add_argument('--no_corrections', action='store_true', help='do not use default corrections')
     parser.add_argument('--overrides', type=str, default='{}', help='server parameter overrides')
     parser.add_argument('--semcode', action='store_true', help='use semcode for some tools')
     parser.add_argument('--semcode_force_macros', action='store_true', help='force use of semcode with macro tools')
@@ -540,6 +541,10 @@ def apply_format_args(args):
     args.system_prompt_file = None
 
     args.branches = args.branches.split(',')
+
+    if args.no_corrections:
+        # to stay consistent
+        args.corrections = None
 
     # handle overrides
     try:
@@ -579,7 +584,7 @@ def apply_format_args(args):
                 if args.no_prompt_comments == False:
                     args.system_prompt = grep_v(args.system_prompt, '^#')
     def load_corrections(f):
-        if args.corrections is None:
+        if args.corrections is None and args.no_corrections == False:
             args.corrections = os.path.join(args.ai_path, 'prompts', f)
 
     if args.r1:
