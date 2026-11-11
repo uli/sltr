@@ -39,8 +39,12 @@ def count_tokens(args, prompt):
     else:
         req['content'] = prompt
 
-    r = requests.post(_url + '/tokenize',
-        json=req)
+    try:
+        r = requests.post(_url + '/tokenize',
+            json=req)
+    except requests.exceptions.ConnectionError as e:
+        log(0, f'Failed to connect to server: {e}')
+        sys.exit(12)
 
     if r.status_code == 404:
         # Strata doesn't have a usable tokenize call (only for messages API),
