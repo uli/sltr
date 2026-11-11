@@ -15,12 +15,22 @@ import sys
 import os
 import re
 
+# True if realpath is .git itself or anything below it.
+def is_gitdir_path(realrepo, realpath):
+    gitdir = os.path.realpath(os.path.join(realrepo, '.git'))
+    return realpath == gitdir or realpath.startswith(gitdir + os.sep)
+
 # ensure the path is within the repo directory
 def sanitize_path(args, path):
     realrepo = os.path.realpath(args.repo)
     realpath = os.path.realpath(os.path.join(args.repo, path))
 
     if realpath != realrepo and not realpath.startswith(realrepo + os.sep):
+        return None, None
+
+    # writing to .git -> arbitrary code execution
+    # reading from .git -> host info leak
+    if is_gitdir_path(realrepo, realpath):
         return None, None
 
     return realrepo, realpath
