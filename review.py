@@ -558,6 +558,7 @@ def stdargs():
     parser.add_argument('--ai_path', type=str, default=ai_path, help='autoreview base directory')
     parser.add_argument('--no_filter', action='store_true', help='do not remove developer information from commit')
     parser.add_argument('--no_prompt_comments', action='store_true', help='do not remove lines starting with # from prompts')
+    parser.add_argument('--raw', action='store_true', help='feed input directly to LLM, without header, footer or quote marks')
     parser.add_argument('--corrections', type=str, default=None, help='corrections file')
     parser.add_argument('--no_corrections', action='store_true', help='do not use default corrections')
     parser.add_argument('--overrides', type=str, default='{}', help='server parameter overrides')
@@ -813,7 +814,6 @@ if __name__ == '__main__':
     parser.add_argument('--syntax', type=str, default='diff',
                         help='syntax tag to use for input')
     parser.add_argument('--answer_only', action='store_true', help='only write the answer to output file')
-    parser.add_argument('--raw', action='store_true', help='feed input directly to LLM, without header, footer or quote marks')
     parser.add_argument('input', nargs=1, type=str, help='input file')
     args = parser.parse_args()
     apply_format_args(args)
