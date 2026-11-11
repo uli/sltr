@@ -10,6 +10,7 @@ from pathlib import Path
 import subprocess
 import inspect
 import json
+import sys
 import os
 import re
 
@@ -447,7 +448,11 @@ def register_tools(tools):
         }
     else:
         for t in tools:
-            TOOL_REGISTRY[t] = globals()['tool_' + t]
+            try:
+                TOOL_REGISTRY[t] = globals()['tool_' + t]
+            except KeyError:
+                sys.stderr.write(f'ERROR: undefined tool {t}\n')
+                sys.exit(49)
 
 def define_tools(args):
     if args.tool_format == 'none':
