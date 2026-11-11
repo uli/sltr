@@ -361,6 +361,17 @@ def tool_grep(args, regex, path):
     return out
 
 
+# SECURITY: man(1) parses every argument that starts with '-' as an option,
+# and both section and page are supplied by the model.  That gives away
+#  -P/--pager=<command> (man runs the pager through a shell -> arbitrary code
+# execution, and with it network access and writes outside the repo),
+#  -l/--local-file (format and display any file, e.g. /etc/shadow),
+#  -M/-W/-w (point at and list man directories outside the repo).
+# man also treats a page name containing '/' as a file path, so '/' has to go
+# as well.  Allow only what a system man page can look like.
+MAN_SECTION_RE = re.compile(r'^[1-9][a-zA-Z]*$')
+MAN_PAGE_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._+-]*$')
+
 def tool_read_man_page(args, section, page, start_line, end_line):
     """Read a man page.
 
@@ -371,12 +382,25 @@ def tool_read_man_page(args, section, page, start_line, end_line):
         end_line: last line
     """
 
+    if MAN_SECTION_RE.match(str(section)) is None:
+        return 'ERR: illegal man section\n'
+
+    if MAN_PAGE_RE.match(str(page)) is None:
+        return 'ERR: illegal man page\n'
+
     start = int(start_line)
     end = int(end_line)
 
-    man = subprocess.Popen(['man', section, page],
+    # Neutralize any funny stuff inherited from the environment.
+    env = dict(os.environ)
+    env['MANPAGER'] = 'cat'
+    env['PAGER'] = 'cat'
+    env['MANOPT'] = ''
+
+    man = subprocess.Popen(['man', str(section), str(page)],
         cwd = args.repo,
-        stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        stdout = subprocess.PIPE, stderr = subprocess.PIPE,
+        env = env)
 
     out = man.stdout.read().decode('utf-8')
     lines = out.split('\n')
