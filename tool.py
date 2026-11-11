@@ -163,6 +163,12 @@ def tool_grep_code(args, branch, regex, path):
     if len(regex) < 8:
         return 'ERR: regex must be at least 8 characters\n'
 
+    realrepo, realpath = sanitize_path(args, path)
+    if realpath is None:
+        return 'ERR: illegal path\n'
+
+    relpath = os.path.relpath(realpath, realrepo)
+
     repo = Repo(args.repo)
     try:
         out = repo.git.grep(
@@ -172,7 +178,7 @@ def tool_grep_code(args, branch, regex, path):
             '--heading',# only show file name once per hunk
             '-p',	# function context
             # pass regex as option, not positional to prevent injection
-            '-e', regex, branch, '--', path)
+            '-e', regex, branch, '--', relpath)
     except exc.GitCommandError:
         # non-zero exit means nothing found, for whatever reason
         out = '[no matches]\n'
