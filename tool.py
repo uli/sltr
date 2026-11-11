@@ -181,7 +181,7 @@ def tool_get_excerpt(args, branch, file, start_line, end_line):
     # XXX: Is this necessary when using "git grep"?
     realrepo, realpath = sanitize_path(args, file)
     if realpath is None:
-        return 'ERR: illegal path'
+        return 'ERR: illegal path\n'
 
     try:
         repo = Repo(args.repo)
@@ -195,9 +195,9 @@ def tool_get_excerpt(args, branch, file, start_line, end_line):
         return '\n'.join(lines[start-1:end]) + '\n'
 
     except FileNotFoundError:
-        return 'ERR: file not found'
+        return 'ERR: file not found\n'
     except ValueError:
-        return 'ERR: illegal range'
+        return 'ERR: illegal range\n'
 
 
 def tool_replace_text(args, file, old, new):
@@ -211,25 +211,25 @@ def tool_replace_text(args, file, old, new):
     try:
         base_dir, abs_path = sanitize_path(args, file)
         if base_dir is None:
-            return "ERR: illegal file path"
+            return "ERR: illegal file path\n"
 
         if old == '':
-            return 'ERR: old text must not be empty'
+            return 'ERR: old text must not be empty\n'
 
         file_path = Path(abs_path)
         text = file_path.read_text(encoding="utf-8")
         matches = text.count(old)
 
         if matches == 0:
-            return "ERR: no exact match found"
+            return "ERR: no exact match found\n"
         if matches > 1:
-            return "ERR: more than one exact match found"
+            return "ERR: more than one exact match found\n"
 
         file_path.write_text(text.replace(old, new), encoding="utf-8")
-        return "[success]"
+        return "[success]\n"
 
     except Exception as exc:
-        return f"ERR: {exc}"
+        return f"ERR: {exc}\n"
 
 
 def tool_read_file(args, file, start_line, end_line):
@@ -243,7 +243,7 @@ def tool_read_file(args, file, start_line, end_line):
     try:
         base_dir, abs_path = sanitize_path(args, file)
         if base_dir is None:
-            return 'ERR: illegal path'
+            return 'ERR: illegal path\n'
 
         start = int(start_line)
         end = int(end_line)
@@ -255,7 +255,7 @@ def tool_read_file(args, file, start_line, end_line):
         return '\n'.join(lines[start-1:end]) + '\n'
 
     except Exception as exc:
-        return f'ERR: {exc}'
+        return f'ERR: {exc}\n'
 
 
 def tool_list_files(args, dir):
@@ -267,16 +267,16 @@ def tool_list_files(args, dir):
     try:
         base_dir, abs_path = sanitize_path(args, dir)
         if base_dir is None:
-            return "ERR: illegal path"
+            return "ERR: illegal path\n"
 
         directory = Path(abs_path)
         if not directory.is_dir():
-            return "ERR: dir is not a directory"
+            return "ERR: dir is not a directory\n"
 
         return '\n'.join(sorted(entry.name for entry in directory.iterdir())) + '\n'
 
     except Exception as exc:
-        return f"ERR: {exc}"
+        return f"ERR: {exc}\n"
 
 
 def _json_type(annotation):
