@@ -361,6 +361,29 @@ def tool_grep(args, regex, path):
     return out
 
 
+def tool_read_man_page(args, section, page, start_line, end_line):
+    """Read a man page.
+
+    Args:
+        section: man section (1-9)
+        page: man page to read
+        start_line: first line
+        end_line: last line
+    """
+
+    start = int(start_line)
+    end = int(end_line)
+
+    man = subprocess.Popen(['man', section, page],
+        cwd = args.repo,
+        stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+
+    out = man.stdout.read().decode('utf-8')
+    lines = out.split('\n')
+
+    return '\n'.join(lines[start-1:end]) + '\n'
+
+
 def _json_type(annotation):
     """Convert common Python annotations to JSON Schema types."""
     origin = get_origin(annotation)
