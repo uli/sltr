@@ -43,7 +43,6 @@ A patch must be backported (PORT) if the issue it fixes affects the {branch_0} k
 
 A patch may be backported at the maintainer's discretion (CHECK) if the issue it fixes affects the {branch_0} kernel code base and:
 - it prevents local denial of service attacks
-- it fixes a minor resource leak, for instance during initialization or deinitialization of a device
 - it prevents local privilege escalation
 - it prevents local denial of service attacks
 - it fixes leaks of internal kernel memory to userspace
@@ -57,6 +56,7 @@ A patch must not be backported (IGNORE) if:
 - it fixes code under the staging directory
 - the issue it fixes does not affect the {branch_0} kernel code
 - it does not correct an actual bug, i.e. it solely serves future-proofing or maintainibility
+- it only fixes a minor resource leak, for instance during initialization or deinitialization of a device
 - it only implements new features
 - it implements support for additional hardware
 - it does not contain any functional changes
