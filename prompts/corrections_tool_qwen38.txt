@@ -31,5 +31,11 @@
 	"I just remembered!",
 	"actual upstream history",
 	"actually, I recall",
+	# Flash-Next
+	"Actually I recall",
+	"Actually I do recall",
+	"I actually recall",
+	"I recall that",
+	"Actually I believe",
     ],
 }
