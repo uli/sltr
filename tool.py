@@ -266,8 +266,6 @@ def tool_apply_patch(args, diff):
     if not patches:
         return 'ERR: No unified diff hunks found.\n'
 
-    # XXX: validate paths
-
     groups = group_patches(patches)
 
     if not groups:
