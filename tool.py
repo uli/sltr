@@ -327,6 +327,40 @@ def tool_list_files(args, dir):
         return f"ERR: {exc}\n"
 
 
+def tool_grep(args, regex, path):
+    """Search files for text matching a regular expression.
+
+    Args:
+        regex: Regular expression to search for (minimum 8 characters).
+        path: Relative path to file or directory (mandatory).
+    """
+    realrepo, realpath = sanitize_path(args, path)
+    if realpath is None:
+        return 'ERR: illegal path\n'
+
+    if not os.path.exists(realpath):
+        return 'ERR: path not found\n'
+
+    # XXX: "-C2" has been chosen at random
+    grep = subprocess.Popen(['ag', '-C2', '-H',
+        '--ignore', '.git',
+        '--ignore', '*.tags',
+        '--ignore', '*.orig',
+        '--ignore', '*.rej',
+        '--',
+        regex, realpath],
+        cwd = args.repo,
+        stdout = subprocess.PIPE)
+
+    out = grep.stdout.read().decode('utf-8').replace(realrepo + os.sep, '')
+
+    # discard excessively long output to prevent review FAILs
+    if len(out) > args.max_tokens * 4 / 5:
+        return 'ERR: output too long\n'
+    
+    return out
+
+
 def _json_type(annotation):
     """Convert common Python annotations to JSON Schema types."""
     origin = get_origin(annotation)

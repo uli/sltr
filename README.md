@@ -11,7 +11,7 @@ otherwise SLTR may not be able to parse the output correctly (depends on the mod
 On Debian-like systems, install the following packages:
 
 ```bash
-sudo apt install python3-git python3-requests universal-ctags python3-docstring-parser
+sudo apt install python3-git python3-requests universal-ctags python3-docstring-parser silversearcher-ag
 ```
 
 ## Usage
