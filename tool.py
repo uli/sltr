@@ -3,6 +3,7 @@
 
 # Tool call function implementations
 
+from tools.fuzzy_patch import parse_patch, group_patches, apply_groups
 from typing import Any, get_args, get_origin, get_type_hints
 from docstring_parser import parse
 from git import Repo, exc
@@ -230,6 +231,34 @@ def tool_replace_text(args, file, old, new):
 
     except Exception as exc:
         return f"ERR: {exc}\n"
+
+
+def tool_apply_patch(args, diff):
+    """Apply a unified diff. Small inaccuracies in line counts are acceptable.
+
+    Args:
+        diff: Unified diff.
+    """
+    patches = parse_patch(diff)
+
+    if not patches:
+        return 'ERR: No unified diff hunks found.\n'
+
+    # XXX: validate paths
+
+    groups = group_patches(patches)
+
+    if not groups:
+        return 'ERR: No files to patch.\n'
+
+    ok = apply_groups(
+        groups,
+        directory=args.repo,
+        max_fuzz=args.fuzz,
+        dry_run=args.dry_run,
+    )
+
+    return '[success]\n' if ok else 'ERR: Failed to apply patch.\n'
 
 
 def tool_read_file(args, file, start_line, end_line):
